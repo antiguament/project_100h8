@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 // Rutas públicas
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('welcome');
 
 use App\Http\Controllers\PublicCategoryController;
 use App\Http\Controllers\CartController;

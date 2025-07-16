@@ -12,15 +12,13 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        <i class="fas fa-tachometer-alt mr-1"></i> {{ __('Dashboard') }}
-                    </x-nav-link>
-                    
-                    @can('admin.categories.index')
                     <x-nav-link :href="route('admin.categories.index')" :active="request()->routeIs('admin.categories.*')">
                         <i class="fas fa-tags mr-1"></i> Categorías
                     </x-nav-link>
-                    @endcan
+                    
+                    <x-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
+                        <i class="fas fa-box mr-1"></i> Productos
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -73,8 +71,12 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
+            <x-responsive-nav-link :href="route('admin.categories.index')" :active="request()->routeIs('admin.categories.*')">
+                <i class="fas fa-tags mr-1"></i> Categorías
+            </x-responsive-nav-link>
+            
+            <x-responsive-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
+                <i class="fas fa-box mr-1"></i> Productos
             </x-responsive-nav-link>
         </div>
 

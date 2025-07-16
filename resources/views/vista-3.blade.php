@@ -104,17 +104,8 @@
                     @endif
                 </div>
 
-                <!-- Botones de acción -->
-                <div class="d-flex gap-3 mt-5">
-                    <button class="btn btn-primary btn-lg px-4 py-3 flex-grow-1" 
-                            @if($product->stock <= 0) disabled @endif>
-                        <i class="fas fa-shopping-cart me-2"></i>
-                        Añadir al carrito
-                    </button>
-                    <button class="btn btn-outline-secondary btn-lg px-4">
-                        <i class="far fa-heart"></i>
-                    </button>
-                </div>
+                <!-- Espaciador para mantener el diseño -->
+                <div class="mt-5"></div>
             </div>
         </div>
     </div>

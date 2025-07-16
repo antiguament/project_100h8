@@ -18,6 +18,12 @@
                     <i class="fas fa-search"></i>
                 </button>
             </div>
+            
+            <div class="mt-4">
+                <a href="{{ route('welcome') }}" class="btn btn-outline-light">
+                    <i class="fas fa-home me-2"></i> Volver al Inicio
+                </a>
+            </div>
         </div>
     </div>
 </section>
