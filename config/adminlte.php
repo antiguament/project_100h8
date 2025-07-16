@@ -333,6 +333,12 @@ return [
                     'icon' => 'fas fa-fw fa-box',
                     'active' => ['admin/products*'],
                 ],
+                [
+                    'text' => 'Páginas',
+                    'url' => '/admin/pages',
+                    'icon' => 'fas fa-fw fa-file-alt',
+                    'active' => ['admin/pages*'],
+                ],
             ],
         ],
 

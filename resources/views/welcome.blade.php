@@ -3,7 +3,23 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Allaletera | Gourmet Delivery - San Carlos, Antioquia</title>
+    @if(isset($page) && $page->meta_title)
+        <title>{{ $page->meta_title }}</title>
+    @else
+        <title>Allaletera | Gourmet Delivery - San Carlos, Antioquia</title>
+    @endif
+    
+    @if(isset($page) && $page->meta_description)
+        <meta name="description" content="{{ $page->meta_description }}">
+    @else
+        <meta name="description" content="Propuesta gastronómica innovadora que celebra los sabores tradicionales de San Carlos, Antioquia.">
+    @endif
+    
+    @if(isset($page) && $page->meta_keywords)
+        <meta name="keywords" content="{{ $page->meta_keywords }}">
+    @else
+        <meta name="keywords" content="comida, restaurante, delivery, San Carlos, Antioquia, gastronomía">
+    @endif
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -521,149 +537,176 @@
 </head>
 <body>
     <div class="container">
+        <!-- Header -->
         <header>
-            <a href="/" class="logo">Alla<span>lettera</span></a>
-            <nav class="nav-links">
-                <a href="#menu">Menú</a>
-                <a href="#especialidades">Especialidades</a>
-                <a href="#nosotros">Nosotros</a>
-                <a href="#contacto">Contacto</a>
-                @if (Route::has('login'))
-                    @auth
-                        <a href="{{ url('/dashboard') }}" class="btn btn-outline">Mi Cuenta</a>
-                    @else
-                        <div class="auth-buttons">
-                            <a href="{{ route('login') }}" class="btn btn-outline">Iniciar Sesión</a>
-                            @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="btn btn-primary">Registrarse</a>
-                            @endif
-                        </div>
-                    @endauth
+            <a href="/" class="logo">
+                @if(isset($page) && $page->logo_image)
+                    <img src="{{ asset('storage/' . $page->logo_image) }}" alt="{{ $page->business_name ?? 'Logo' }}" class="logo-image">
+                @else
+                    {{ $page->business_name_short ?? 'Alla' }}<span>{{ $page->business_name_highlight ?? 'lettera' }}</span>
                 @endif
-                <a href="{{ route('vista-1') }}" class="btn btn-primary">Ver Menú</a>
+            </a>
+            
+            <!-- Mobile menu button -->
+            <button class="mobile-menu-btn" aria-label="Toggle menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <!-- Navigation -->
+            <nav class="nav-links">
+                <button class="close-menu-btn" aria-label="Close menu">
+                    <i class="fas fa-times"></i>
+                </button>
+                
+                @if(isset($page->menu_items) && is_array($page->menu_items))
+                    @foreach($page->menu_items as $item)
+                        <a href="{{ $item['url'] ?? '#' }}">{{ $item['text'] ?? 'Menú' }}</a>
+                    @endforeach
+                @else
+                    <a href="#menu">Menú</a>
+                    <a href="#especialidades">Especialidades</a>
+                    <a href="#nosotros">Nosotros</a>
+                    <a href="#contacto">Contacto</a>
+                    @if (Route::has('login'))
+                        @auth
+                            <a href="{{ url('/dashboard') }}" class="btn btn-outline">Mi Cuenta</a>
+                        @else
+                            <div class="auth-buttons">
+                                <a href="{{ route('login') }}" class="btn btn-outline">Iniciar Sesión</a>
+                                @if (Route::has('register'))
+                                    <a href="{{ route('register') }}" class="btn btn-primary">Registrarse</a>
+                                @endif
+                            </div>
+                        @endauth
+                    @endif
+                    <a href="{{ route('vista-1') }}" class="btn btn-primary">Ver Menú</a>
+                @endif
             </nav>
         </header>
 
-        <section class="hero">
+        <section class="hero" style="{{ !empty($page->hero_image) ? 'background-image: url(' . asset('storage/' . $page->hero_image) . ');' : '' }}">
             <div class="hero-content">
-                <h1>Sabores de San Carlos <span>en tu mesa</span></h1>
-                <p>Experiencia gourmet con los ingredientes más frescos de Antioquia. Cocina tradicional con un toque innovador, entregada directamente a tu hogar.</p>
+                <h1>{!! nl2br(e($page->hero_title ?? 'Sabores que inspiran,<br><span>momentos que perduran</span>')) !!}</h1>
+                <p>{{ $page->hero_subtitle ?? 'Una experiencia gastronómica única que combina tradición e innovación en cada plato. Entregamos a domicilio en San Carlos, Antioquia.' }}</p>
                 <div class="cta-buttons">
-                    @if (Route::has('login'))
-                        @auth
-                            <a href="{{ route('vista-1') }}" class="btn btn-primary">Ordenar Ahora</a>
-                        @else
-                            <a href="{{ route('login') }}" class="btn btn-outline">Iniciar Sesión</a>
-                            @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="btn btn-primary">Registrarse</a>
-                            @endif
-                        @endauth
+                    @if(isset($page->cta_buttons))
+                        @foreach($page->cta_buttons as $button)
+                            <a href="{{ $button['url'] ?? '#' }}" class="btn {{ $button['type'] ?? 'btn-primary' }}">
+                                {{ $button['text'] ?? 'Ver más' }}
+                            </a>
+                        @endforeach
+                    @else
+                        <a href="#menu" class="btn btn-primary">Ver Menú</a>
+                        <a href="#contacto" class="btn btn-secondary">Hacer Pedido</a>
                     @endif
-                    <a href="#especialidades" class="btn btn-secondary">Nuestras Especialidades</a>
                 </div>
             </div>
         </section>
 
         <section class="features">
             <div class="section-title">
-                <h2>¿Cómo funciona?</h2>
-                <p>Disfruta de una experiencia culinaria excepcional en tres simples pasos</p>
+                <h2>{{ $page->features_title ?? '¿Cómo funciona?' }}</h2>
+                <p>{{ $page->features_subtitle ?? 'Disfruta de una experiencia culinaria excepcional en tres simples pasos' }}</p>
             </div>
+            @if(!empty($page->features) && is_array($page->features) && count($page->features) > 0)
             <div class="features-grid">
+                @foreach($page->features as $feature)
                 <div class="feature-card">
+                    @if(!empty($feature['icon']))
                     <div class="feature-icon">
-                        <i class="fas fa-mobile-alt"></i>
+                        <i class="{{ $feature['icon'] }}"></i>
                     </div>
-                    <h3>Elige</h3>
-                    <p>Selecciona tus platos favoritos de nuestro menú gourmet desde nuestra plataforma.</p>
+                    @endif
+                    @if(!empty($feature['title']))
+                    <h3>{{ $feature['title'] }}</h3>
+                    @endif
+                    @if(!empty($feature['description']))
+                    <p>{{ $feature['description'] }}</p>
+                    @endif
                 </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <h3>Preparamos</h3>
-                    <p>Nuestros chefs elaboran cada plato con ingredientes frescos y técnicas tradicionales.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-home"></i>
-                    </div>
-                    <h3>Disfruta</h3>
-                    <p>Recibe tu pedido en la comodidad de tu hogar y vive una experiencia gastronómica única.</p>
-                </div>
+                @endforeach
             </div>
+            @endif
         </section>
 
+        @if(!empty($page->specialties) && is_array($page->specialties) && count($page->specialties) > 0)
         <section class="specialties" id="especialidades">
             <div class="section-title">
-                <h2>Nuestras Especialidades</h2>
-                <p>Platos signature que definen nuestra propuesta gastronómica</p>
+                <h2>{{ $page->specialties_title ?? 'Nuestras Especialidades' }}</h2>
+                <p>{{ $page->specialties_subtitle ?? 'Platos signature que definen nuestra propuesta gastronómica' }}</p>
             </div>
             <div class="specialties-grid">
+                @foreach($page->specialties as $specialty)
                 <div class="specialty-card">
                     <div class="specialty-img">
-                        <img src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Trucha Fresca">
+                        @if(!empty($specialty['image']))
+                        <img src="{{ asset('storage/' . $specialty['image']) }}" alt="{{ $specialty['title'] ?? 'Especialidad' }}">
+                        @else
+                        <img src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="{{ $specialty['title'] ?? 'Especialidad' }}">
+                        @endif
                     </div>
                     <div class="specialty-content">
-                        <div class="specialty-badge">Chef's Pick</div>
-                        <h3>Trucha Fresca de San Carlos</h3>
-                        <p>Trucha de río con salsa de maracuyá y hierbas de la región</p>
-                        <div class="specialty-price">$32.000</div>
+                        @if(!empty($specialty['title']))
+                        <h3>{{ $specialty['title'] }}</h3>
+                        @endif
+                        @if(!empty($specialty['description']))
+                        <p>{{ $specialty['description'] }}</p>
+                        @endif
+                        @if(!empty($specialty['button_text']) && !empty($specialty['button_url']))
+                        <a href="{{ $specialty['button_url'] }}" class="btn btn-outline btn-sm">
+                            {{ $specialty['button_text'] }}
+                        </a>
+                        @endif
                     </div>
                 </div>
-                
-                <div class="specialty-card">
-                    <div class="specialty-img">
-                        <img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Bandeja Paisa Gourmet">
-                    </div>
-                    <div class="specialty-content">
-                        <div class="specialty-badge">Popular</div>
-                        <h3>Bandeja Paisa Gourmet</h3>
-                        <p>Versión premium del clásico antioqueño con ingredientes selectos</p>
-                        <div class="specialty-price">$28.000</div>
-                    </div>
-                </div>
-                
-                <div class="specialty-card">
-                    <div class="specialty-img">
-                        <img src="https://images.unsplash.com/photo-1603105037880-880cd4edfb0d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Risotto de Hongos">
-                    </div>
-                    <div class="specialty-content">
-                        <h3>Risotto de Hongos Silvestres</h3>
-                        <p>Arborio cremoso con hongos recolectados en las montañas de Antioquia</p>
-                        <div class="specialty-price">$35.000</div>
-                    </div>
-                </div>
-                
-                <div class="specialty-card">
-                    <div class="specialty-img">
-                        <img src="https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80" alt="Postre de Guanábana">
-                    </div>
-                    <div class="specialty-content">
-                        <h3>Postre de Guanábana</h3>
-                        <p>Mousse ligero de guanábana con coulis de frutos rojos</p>
-                        <div class="specialty-price">$15.000</div>
-                    </div>
-                </div>
+                @endforeach
             </div>
         </section>
+        @endif
 
+        @if(!empty($page->testimonials) && is_array($page->testimonials) && count($page->testimonials) > 0)
         <section class="testimonials">
             <div class="section-title">
-                <h2>Lo que dicen nuestros clientes</h2>
-                <p>Experiencias reales de quienes han probado nuestra cocina</p>
+                <h2>{{ $page->testimonials_title ?? 'Lo que dicen nuestros clientes' }}</h2>
+                <p>{{ $page->testimonials_subtitle ?? 'Experiencias de quienes han disfrutado de nuestra cocina' }}</p>
             </div>
-            <div class="container">
+            <div class="testimonials-slider">
+                @foreach($page->testimonials as $testimonial)
                 <div class="testimonial-card">
-                    <div class="testimonial-text">
-                        La Trucha con salsa de maracuyá es simplemente espectacular. Nunca había probado algo así en San Carlos. El equilibrio de sabores es perfecto.
+                    @if(!empty($testimonial['rating']))
+                    <div class="testimonial-rating">
+                        @for($i = 1; $i <= 5; $i++)
+                            @if($i <= $testimonial['rating'])
+                                <i class="fas fa-star"></i>
+                            @elseif($i - 0.5 <= $testimonial['rating'])
+                                <i class="fas fa-star-half-alt"></i>
+                            @else
+                                <i class="far fa-star"></i>
+                            @endif
+                        @endfor
                     </div>
-                    <div class="testimonial-author">- Juan Pérez</div>
+                    @endif
+                    @if(!empty($testimonial['text']))
+                    <p class="testimonial-text">"{{ $testimonial['text'] }}"</p>
+                    @endif
+                    <div class="testimonial-author">
+                        @if(!empty($testimonial['image']))
+                        <img src="{{ asset('storage/' . $testimonial['image']) }}" alt="{{ $testimonial['name'] ?? 'Cliente' }}">
+                        @endif
+                        <div>
+                            @if(!empty($testimonial['name']))
+                            <h4>{{ $testimonial['name'] }}</h4>
+                            @endif
+                            @if(!empty($testimonial['position']))
+                            <span>{{ $testimonial['position'] }}</span>
+                            @endif
+                        </div>
+                    </div>
                 </div>
+                @endforeach
             </div>
         </section>
+        @endif
 
         <section class="cta-section">
             <h2>¿Listo para una experiencia gastronómica?</h2>
@@ -683,46 +726,150 @@
         <footer id="contacto">
             <div class="footer-content">
                 <div class="footer-column">
-                    <h3>Allaletera</h3>
-                    <p>Propuesta gastronómica innovadora que celebra los sabores tradicionales de San Carlos, Antioquia.</p>
+                    <h3>{{ $page->business_name ?? 'Allaletera' }}</h3>
+                    <p>{{ $page->business_description ?? 'Propuesta gastronómica innovadora que celebra los sabores tradicionales de San Carlos, Antioquia.' }}</p>
+                    @if(!empty($page->social_links) && is_array($page->social_links))
                     <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                        @foreach($page->social_links as $social)
+                            @if(!empty($social['url']) && !empty($social['icon']))
+                            <a href="{{ $social['url'] }}" target="_blank" rel="noopener noreferrer">
+                                <i class="{{ $social['icon'] }}"></i>
+                            </a>
+                            @endif
+                        @endforeach
                     </div>
+                    @endif
                 </div>
                 
+                @if(!empty($page->opening_hours) && is_array($page->opening_hours) && count($page->opening_hours) > 0)
                 <div class="footer-column">
-                    <h3>Horarios</h3>
+                    <h3>{{ $page->opening_hours_title ?? 'Horarios' }}</h3>
                     <ul>
-                        <li>Lunes a Viernes: 11am - 9pm</li>
-                        <li>Sábados: 12pm - 10pm</li>
-                        <li>Domingos: 12pm - 8pm</li>
+                        @foreach($page->opening_hours as $schedule)
+                            @if(!empty($schedule['days']) && !empty($schedule['hours']))
+                            <li>{{ $schedule['days'] }}: {{ $schedule['hours'] }}</li>
+                            @endif
+                        @endforeach
                     </ul>
                 </div>
+                @endif
                 
                 <div class="footer-column">
                     <h3>Contacto</h3>
                     <ul>
-                        <li>San Carlos, Antioquia</li>
-                        <li>+57 310 123 4567</li>
-                        <li>info@allaletera.com</li>
+                        @if(!empty($page->address))
+                        <li><i class="fas fa-map-marker-alt"></i> {{ $page->address }}</li>
+                        @endif
+                        @if(!empty($page->phone))
+                        <li><i class="fas fa-phone"></i> <a href="tel:{{ preg_replace('/[^0-9+]/', '', $page->phone) }}">{{ $page->phone }}</a></li>
+                        @endif
+                        @if(!empty($page->email))
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:{{ $page->email }}">{{ $page->email }}</a></li>
+                        @endif
+                        @if(!empty($page->whatsapp))
+                        <li><i class="fab fa-whatsapp"></i> <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $page->whatsapp) }}" target="_blank">{{ $page->whatsapp }}</a></li>
+                        @endif
                     </ul>
                 </div>
+                
+                @if($page->show_newsletter ?? true)
+                <div class="footer-column">
+                    <h3>{{ $page->newsletter_title ?? 'Newsletter' }}</h3>
+                    <p>{{ $page->newsletter_subtitle ?? 'Suscríbete para recibir nuestras ofertas especiales' }}</p>
+                    <form class="newsletter-form" action="{{ $page->newsletter_action ?? '#' }}" method="POST">
+                        @csrf
+                        <input type="email" name="email" placeholder="{{ $page->newsletter_placeholder ?? 'Tu correo electrónico' }}" required>
+                        <button type="submit">{{ $page->newsletter_button ?? 'Suscribirse' }}</button>
+                    </form>
+                </div>
+                @endif
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2023 Allaletera. Todos los derechos reservados.</p>
+                <p>&copy; {{ date('Y') }} {{ $page->copyright_text ?? 'Allaletera' }}. {{ $page->rights_text ?? 'Todos los derechos reservados.' }}</p>
+                @if(!empty($page->footer_links) && is_array($page->footer_links))
+                <div class="footer-links">
+                    @foreach($page->footer_links as $link)
+                        @if(!empty($link['url']) && !empty($link['text']))
+                        <a href="{{ $link['url'] }}">{{ $link['text'] }}</a>
+                        @endif
+                    @endforeach
+                </div>
+                @endif
             </div>
         </footer>
     </div>
 
     <!-- WhatsApp Float -->
-    <a href="https://wa.me/573101234567" class="whatsapp-float" target="_blank">
+    @if(!empty($page->whatsapp))
+    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $page->whatsapp) }}?text={{ urlencode('Hola, me gustaría hacer un pedido') }}" 
+       class="whatsapp-float" 
+       target="_blank" 
+       rel="noopener noreferrer"
+       data-bs-toggle="tooltip" 
+       data-bs-placement="left" 
+       title="¡Chatea con nosotros!">
         <i class="fab fa-whatsapp"></i>
     </a>
-
-    <!-- Font Awesome for icons -->
+    @endif
+    
+    <!-- Font Awesome 5.15.4 -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    
+    <!-- Initialize tooltips -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tooltip initialization
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
+            // Add animation class on hover
+            const whatsappBtn = document.querySelector('.whatsapp-float');
+            if (whatsappBtn) {
+                whatsappBtn.addEventListener('mouseenter', function() {
+                    this.classList.add('pulse');
+                });
+                whatsappBtn.addEventListener('animationend', function() {
+                    this.classList.remove('pulse');
+                });
+            }
+        });
+    </script>
+    
+    <!-- Additional CSS for animations -->
+    <style>
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .whatsapp-float {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #25D366;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            text-decoration: none;
+            color: white;
+        }
+        .whatsapp-float.pulse {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
 </body>
 </html>

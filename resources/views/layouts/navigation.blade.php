@@ -19,6 +19,10 @@
                     <x-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
                         <i class="fas fa-box mr-1"></i> Productos
                     </x-nav-link>
+                    
+                    <x-nav-link :href="route('admin.pages.index')" :active="request()->routeIs('admin.pages.*')">
+                        <i class="fas fa-file-alt mr-1"></i> Páginas
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -77,6 +81,10 @@
             
             <x-responsive-nav-link :href="route('admin.products.index')" :active="request()->routeIs('admin.products.*')">
                 <i class="fas fa-box mr-1"></i> Productos
+            </x-responsive-nav-link>
+            
+            <x-responsive-nav-link :href="route('admin.pages.index')" :active="request()->routeIs('admin.pages.*')">
+                <i class="fas fa-file-alt mr-1"></i> Páginas
             </x-responsive-nav-link>
         </div>
 

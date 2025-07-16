@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Administrador',
             'email' => 'admin@example.com',
             'password' => bcrypt('password'),
+            'is_admin' => true,
             'email_verified_at' => now(),
         ]);
 
@@ -25,6 +26,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CategorySeeder::class,
             ProductSeeder::class,
+            PageSeeder::class,
         ]);
     }
 }

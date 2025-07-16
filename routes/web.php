@@ -6,9 +6,12 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // Rutas públicas
-Route::get('/', function () {
-    return view('welcome');
-})->name('welcome');
+use App\Models\Page;
+
+// Ruta de la página de inicio
+use App\Http\Controllers\HomeController;
+
+Route::get('/', [HomeController::class, 'index'])->name('welcome');
 
 use App\Http\Controllers\PublicCategoryController;
 use App\Http\Controllers\CartController;
@@ -72,5 +75,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Ruta para ver productos por categoría
         Route::get('categories/{category}/products', [CategoryController::class, 'products'])
              ->name('admin.categories.products');
+        
+        // Rutas para la administración de páginas
+        Route::resource('pages', \App\Http\Controllers\Admin\PageController::class)
+             ->names('admin.pages')
+             ->except(['show']);
+             
+        // Ruta para actualización directa de páginas
+        Route::post('pages/direct-update/{page}', [\App\Http\Controllers\Admin\PageController::class, 'directUpdate'])
+             ->name('admin.pages.direct-update');
     });
 });
