@@ -33,6 +33,19 @@ Route::controller(PublicCategoryController::class)->group(function () {
     Route::get('/producto/{productId}', 'showProduct')->name('producto.detalle');
 });
 
+// Ruta para servir imágenes de productos
+Route::get('/images/products/{filename}', function ($filename) {
+    $path = storage_path('app/public/products/' . $filename);
+    
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return response()->file($path, [
+        'Content-Type' => 'image/png', // Se ajustará automáticamente al tipo de imagen
+    ]);
+})->name('product.image');
+
 // Rutas de autenticación
 require __DIR__.'/auth.php';
 

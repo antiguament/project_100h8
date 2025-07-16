@@ -57,7 +57,8 @@ class Product extends Model
             return $this->image;
         }
         
-        // Si la imagen comienza con 'http', asumimos que es una URL completa
+        // Usamos la ruta de Laravel para servir la imagen
+        return route('product.image', ['filename' => basename($this->image)]);
         if (str_starts_with($this->image, 'http')) {
             return $this->image;
         }

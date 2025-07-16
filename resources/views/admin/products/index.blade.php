@@ -51,7 +51,11 @@
                                 <td>{{ $product->id }}</td>
                                 <td>
                                     @if($product->image)
-                                        <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}" class="img-thumbnail" style="max-width: 50px;">
+                                        <img src="{{ route('product.image', ['filename' => basename($product->image)]) }}" 
+                                             alt="{{ $product->name }}" 
+                                             class="img-thumbnail" 
+                                             style="max-width: 50px;"
+                                             onerror="this.onerror=null; this.src='{{ asset('storage/' . $product->image) }}';">
                                     @else
                                         <span class="text-muted">Sin imagen</span>
                                     @endif

@@ -20,8 +20,11 @@
         <div class="product-grid">
             @foreach($products as $product)
                 <div class="product-card">
-                    @if($product->image_url)
-                        <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="product-image">
+                    @if($product->image)
+                        <img src="{{ $product->image_url }}" 
+                             alt="{{ $product->name }}" 
+                             class="product-image"
+                             onerror="this.onerror=null; this.src='{{ asset('storage/' . $product->image) }}';">
                     @else
                         <div class="product-image bg-light d-flex align-items-center justify-content-center">
                             <i class="fas fa-box-open fa-3x text-muted"></i>

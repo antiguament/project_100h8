@@ -90,10 +90,11 @@
                             <label for="image">Imagen del Producto</label>
                             @if($product->image)
                                 <div class="mb-2">
-                                    <img src="{{ asset('storage/' . $product->image) }}" 
+                                    <img src="{{ route('product.image', ['filename' => basename($product->image)]) }}" 
                                          alt="{{ $product->name }}" 
                                          class="img-thumbnail" 
-                                         style="max-width: 100px;">
+                                         style="max-width: 100px;"
+                                         onerror="this.onerror=null; this.src='{{ asset('storage/' . $product->image) }}';">
                                     <div class="form-check mt-2">
                                         <input type="checkbox" name="remove_image" id="remove_image" 
                                                class="form-check-input">

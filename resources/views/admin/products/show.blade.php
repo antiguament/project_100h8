@@ -22,10 +22,11 @@
             <div class="card">
                 <div class="card-body text-center">
                     @if($product->image)
-                        <img src="{{ asset('storage/' . $product->image) }}" 
+                        <img src="{{ route('product.image', ['filename' => basename($product->image)]) }}" 
                              alt="{{ $product->name }}" 
                              class="img-fluid rounded" 
-                             style="max-height: 300px;">
+                             style="max-height: 300px;"
+                             onerror="this.onerror=null; this.src='{{ asset('storage/' . $product->image) }}';">
                     @else
                         <div class="bg-light d-flex align-items-center justify-content-center" 
                              style="height: 300px; width: 100%;">
