@@ -111,12 +111,25 @@ class Page extends Model
         ];
     }
 
+    /**
+     * Obtiene la URL completa de la imagen del héroe
+     *
+     * @return string|null
+     */
     public function getHeroImageUrlAttribute()
     {
-        if ($this->hero_image) {
-            return Storage::url($this->hero_image);
+        if (empty($this->hero_image)) {
+            return null;
         }
-        return null;
+        
+        // Verificar si la URL ya es completa (empieza con http)
+        if (strpos($this->hero_image, 'http') === 0) {
+            return $this->hero_image;
+        }
+        
+        // Usar la ruta de Laravel para servir la imagen
+        $filename = basename($this->hero_image);
+        return route('page.image', ['filename' => $filename]);
     }
 
     public function scopeActive($query)

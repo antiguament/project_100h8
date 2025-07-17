@@ -49,6 +49,19 @@ Route::get('/images/products/{filename}', function ($filename) {
     ]);
 })->name('product.image');
 
+// Ruta temporal para servir imágenes de páginas
+Route::get('/images/pages/{filename}', function ($filename) {
+    $path = storage_path('app/public/pages/' . $filename);
+    
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return response()->file($path, [
+        'Content-Type' => 'image/png', // Se ajustará automáticamente al tipo de imagen
+    ]);
+})->name('page.image');
+
 // Rutas de autenticación
 require __DIR__.'/auth.php';
 
