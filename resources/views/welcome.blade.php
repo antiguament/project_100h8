@@ -25,6 +25,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Styles -->
     <style>
@@ -506,6 +509,42 @@
             box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4);
         }
         
+        /* Estilos para el menú móvil */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: 2px solid var(--color-primary);
+            border-radius: 4px;
+            font-size: 1.8rem;
+            color: var(--color-primary);
+            cursor: pointer;
+            padding: 0.5rem 0.8rem;
+            z-index: 1001;
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-menu-btn:hover {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        
+        .close-menu-btn {
+            display: none;
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+            z-index: 1002;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
@@ -521,16 +560,104 @@
                 align-items: center;
             }
             
-            .nav-links {
-                display: none;
+            /* Estilos para el menú móvil */
+            .mobile-menu-btn {
+                display: block !important;
             }
             
-            .mobile-menu-btn {
+            .nav-links {
+                display: none;
+                position: fixed;
+                top: 0;
+                right: 0;
+                width: 80%;
+                max-width: 300px;
+                height: 100vh;
+                background-color: white;
+                flex-direction: column;
+                padding: 5rem 1.5rem 2rem;
+                z-index: 1000;
+                overflow-y: auto;
+                box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+                transform: translateX(100%);
+                transition: transform 0.3s ease-in-out;
+            }
+            
+            .nav-links.active {
+                display: flex !important;
+                transform: translateX(0);
+            }
+            
+            .nav-links a {
+                color: var(--color-dark) !important;
+                padding: 1rem 0;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+                width: 100%;
+                text-align: left;
                 display: block;
+                font-size: 1.1rem;
+                transition: all 0.2s ease;
+            }
+            
+            .nav-links a:hover {
+                color: var(--color-primary) !important;
+                padding-left: 0.5rem;
+            }
+            
+            .nav-links a:hover {
+                color: var(--color-secondary) !important;
+                background-color: rgba(255, 255, 255, 0.05);
+            }
+            
+            .close-menu-btn {
+                display: block !important;
+                position: absolute;
+                top: 1.5rem;
+                right: 1.5rem;
+                background: var(--color-primary);
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                font-size: 1.5rem;
+                z-index: 1002;
             }
             
             .auth-buttons {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                margin-top: 1rem;
+            }
+            
+            .auth-buttons .btn {
+                width: 100%;
+                margin: 0.5rem 0;
+                text-align: center;
+            }
+            
+            /* Overlay para fondo oscuro cuando el menú está abierto */
+            .menu-overlay {
                 display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.7);
+                z-index: 999;
+            }
+            
+            body.menu-open {
+                overflow: hidden;
+                position: fixed;
+                width: 100%;
+                height: 100%;
             }
         }
     </style>
@@ -583,7 +710,7 @@
                 @endif
             </nav>
         </header>
-
+        <img src="{{ $page->hero_image_url }}" alt="{{ $page->title }}" class="img-thumbnail" style="max-width: 200px;">
         <section class="hero" style="{{ !empty($page->hero_image) ? 'background-image: url(' . asset('storage/' . $page->hero_image) . ');' : '' }}">
             <div class="hero-content">
                 <h1>{!! nl2br(e($page->hero_title ?? 'Sabores que inspiran,<br><span>momentos que perduran</span>')) !!}</h1>
@@ -596,7 +723,7 @@
                             </a>
                         @endforeach
                     @else
-                        <a href="#menu" class="btn btn-primary">Ver Menú</a>
+                        <a href="{{ route('vista-1') }}" class="btn btn-primary">Ver Menú</a>
                         <a href="#contacto" class="btn btn-secondary">Hacer Pedido</a>
                     @endif
                 </div>
@@ -803,16 +930,94 @@
     <!-- WhatsApp Float -->
     @if(!empty($page->whatsapp))
     <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $page->whatsapp) }}?text={{ urlencode('Hola, me gustaría hacer un pedido') }}" 
-       class="whatsapp-float" 
-       target="_blank" 
-       rel="noopener noreferrer"
-       data-bs-toggle="tooltip" 
-       data-bs-placement="left" 
-       title="¡Chatea con nosotros!">
+       class="whatsapp-float" target="_blank" aria-label="Chatear por WhatsApp">
         <i class="fab fa-whatsapp"></i>
     </a>
     @endif
-    
+
+    <!-- Script para el menú móvil -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+            const closeMenuBtn = document.querySelector('.close-menu-btn');
+            const navLinks = document.querySelector('.nav-links');
+            const body = document.body;
+            
+            // Crear overlay si no existe
+            let menuOverlay = document.querySelector('.menu-overlay');
+            if (!menuOverlay) {
+                menuOverlay = document.createElement('div');
+                menuOverlay.className = 'menu-overlay';
+                document.body.appendChild(menuOverlay);
+            }
+            
+            // Función para abrir el menú
+            function openMenu() {
+                if (navLinks) navLinks.classList.add('active');
+                body.classList.add('menu-open');
+                menuOverlay.style.display = 'block';
+            }
+            
+            // Función para cerrar el menú
+            function closeMenu() {
+                if (navLinks) navLinks.classList.remove('active');
+                body.classList.remove('menu-open');
+                menuOverlay.style.display = 'none';
+            }
+            
+            // Mostrar menú al hacer clic en el botón de menú
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    openMenu();
+                });
+            }
+            
+            // Cerrar menú al hacer clic en el botón de cerrar
+            if (closeMenuBtn) {
+                closeMenuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    closeMenu();
+                });
+            }
+            
+            // Cerrar menú al hacer clic en el overlay
+            menuOverlay.addEventListener('click', closeMenu);
+            
+            // Cerrar menú al hacer clic en un enlace del menú (en móviles)
+            const navItems = document.querySelectorAll('.nav-links a');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        closeMenu();
+                    }
+                });
+            });
+            
+            // Manejar cambios de tamaño de pantalla
+            function handleResize() {
+                if (window.innerWidth > 768) {
+                    // En pantallas grandes, asegurarse de que el menú esté visible
+                    if (navLinks) {
+                        navLinks.style.display = 'flex';
+                        navLinks.classList.remove('active');
+                    }
+                    body.classList.remove('menu-open');
+                    menuOverlay.style.display = 'none';
+                } else {
+                    // En móviles, asegurar que el menú esté oculto por defecto
+                    if (navLinks && !navLinks.classList.contains('active')) {
+                        navLinks.style.display = 'none';
+                    }
+                }
+            }
+            
+            // Inicializar
+            handleResize();
+            window.addEventListener('resize', handleResize);
+        });
+    </script>
+
     <!-- Font Awesome 5.15.4 -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     
