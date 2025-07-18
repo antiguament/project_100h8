@@ -598,7 +598,7 @@
                 height: 100vh;
                 background-color: white;
                 flex-direction: column;
-                padding: 4.5rem 0 2rem;
+                padding: 4.5rem 1.5rem 2rem;
                 z-index: 1000;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
@@ -606,9 +606,14 @@
                 transform: translateX(100%);
                 transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
                 will-change: transform;
-                backface-visibility: hidden;
-                perspective: 1000px;
-                transform-style: preserve-3d;
+                -webkit-tap-highlight-color: rgba(0,0,0,0);
+                touch-action: pan-y;
+            }
+            
+            .nav-links.active {
+                transform: translateX(0);
+                display: flex;
+                pointer-events: auto;
             }
             
             /* Scrollbar personalizada para navegadores webkit */
@@ -634,22 +639,32 @@
                 color: var(--color-dark) !important;
                 padding: 1.25rem 1.5rem;
                 border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-                width: 100%;
                 text-align: left;
                 display: block;
                 font-size: 1.1rem;
                 transition: all 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
                 position: relative;
-                margin: 0 -1.5rem;
-                width: calc(100% + 3rem);
+                width: 100%;
+                margin: 0;
                 border-radius: 0;
-                -webkit-tap-highlight-color: transparent;
+                -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
                 -webkit-touch-callout: none;
                 -webkit-user-select: none;
                 -khtml-user-select: none;
                 -moz-user-select: none;
                 -ms-user-select: none;
                 user-select: none;
+                cursor: pointer;
+                -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+                touch-action: manipulation;
+            }
+            
+            /* Mejorar la accesibilidad en dispositivos táctiles */
+            @media (hover: none) {
+                .nav-links a:active {
+                    background-color: rgba(230, 57, 70, 0.05);
+                    transform: translateX(5px);
+                }
             }
             
             /* Efecto de retroalimentación táctil */
@@ -664,6 +679,21 @@
                 background-color: rgba(230, 57, 70, 0.1) !important;
                 color: var(--color-primary) !important;
                 transform: translateX(8px);
+            }
+            
+            /* Estilos para botones dentro del menú */
+            .nav-links .btn {
+                display: inline-block;
+                margin: 0.5rem 0;
+                text-align: center;
+                -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+                touch-action: manipulation;
+            }
+            
+            /* Asegurar que los enlaces sean visibles y accesibles */
+            .nav-links a[href]:not([href="#"]) {
+                position: relative;
+                z-index: 1;
             }
             
             .nav-links a::after {
@@ -746,8 +776,11 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background-color: rgba(0, 0, 0, 0.7);
+                background-color: rgba(0, 0, 0, 0.5);
                 z-index: 999;
+                opacity: 1;
+                transition: opacity 0.3s ease;
+                -webkit-tap-highlight-color: transparent;
             }
             
             body.menu-open {
@@ -1038,150 +1071,129 @@
             const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
             const closeMenuBtn = document.querySelector('.close-menu-btn');
             const navLinks = document.querySelector('.nav-links');
+            const menuOverlay = document.querySelector('.menu-overlay');
             const body = document.body;
             let isMenuOpen = false;
-            
-            // Crear overlay si no existe
-            let menuOverlay = document.querySelector('.menu-overlay');
-            if (!menuOverlay) {
-                menuOverlay = document.createElement('div');
-                menuOverlay.className = 'menu-overlay';
-                document.body.appendChild(menuOverlay);
-            }
-            
-            // Agregar clase para detectar touch
-            document.documentElement.classList.add('has-touch');
-            document.addEventListener('touchstart', function() {}, {passive: true});
-            
+
             // Función para abrir el menú
             function openMenu() {
-                if (navLinks) {
+                if (!navLinks) return;
+                
+                navLinks.style.display = 'flex';
+                setTimeout(() => {
                     navLinks.classList.add('active');
-                    // Forzar repintado para asegurar la transición
-                    void navLinks.offsetWidth;
                     navLinks.style.transform = 'translateX(0)';
-                }
+                }, 10);
+                
                 body.classList.add('menu-open');
-                menuOverlay.style.display = 'block';
+                if (menuOverlay) menuOverlay.style.display = 'block';
                 isMenuOpen = true;
-                // Deshabilitar scroll del body
                 body.style.overflow = 'hidden';
             }
             
             // Función para cerrar el menú
             function closeMenu() {
-                if (navLinks) {
-                    navLinks.style.transform = 'translateX(100%)';
-                    setTimeout(() => {
-                        if (navLinks) navLinks.classList.remove('active');
-                    }, 300); // Igual que la duración de la transición
-                }
-                body.classList.remove('menu-open');
-                menuOverlay.style.display = 'none';
+                if (!navLinks) return;
+                
+                navLinks.style.transform = 'translateX(100%)';
+                navLinks.classList.remove('active');
                 isMenuOpen = false;
-                // Restaurar scroll del body
+                body.classList.remove('menu-open');
+                if (menuOverlay) menuOverlay.style.display = 'none';
                 body.style.overflow = '';
+                
+                // Ocultar el menú después de la animación
+                setTimeout(() => {
+                    if (navLinks && !isMenuOpen) {
+                        navLinks.style.display = 'none';
+                    }
+                }, 300);
             }
             
-            // Mostrar menú al hacer clic en el botón de menú
+            // Manejadores de eventos para los botones del menú
             if (mobileMenuBtn) {
-                mobileMenuBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    openMenu();
-                });
+                mobileMenuBtn.addEventListener('click', openMenu);
             }
             
-            // Cerrar menú al hacer clic en el botón de cerrar
             if (closeMenuBtn) {
-                closeMenuBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    closeMenu();
-                });
+                closeMenuBtn.addEventListener('click', closeMenu);
             }
             
             // Cerrar menú al hacer clic en el overlay
-            menuOverlay.addEventListener('click', closeMenu);
-            
-            // Función para manejar clics en enlaces del menú
-            function handleMenuLinkClick(e) {
-                // Si es un enlace interno (que comienza con #)
-                if (this.getAttribute('href').startsWith('#')) {
-                    e.preventDefault();
-                    const targetId = this.getAttribute('href');
-                    const targetElement = document.querySelector(targetId);
-                    
-                    // Añadir clase de retroalimentación táctil
-                    this.classList.add('active');
-                    setTimeout(() => this.classList.remove('active'), 300);
-                    
-                    // Cerrar el menú
-                    closeMenu();
-                    
-                    // Desplazarse suavemente al elemento objetivo
-                    if (targetElement) {
-                        setTimeout(() => {
-                            targetElement.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'start'
-                            });
-                        }, 350); // Pequeño retraso para permitir que el menú se cierre
-                    }
-                } else {
-                    // Para enlaces externos o rutas, solo cerrar el menú
-                    closeMenu();
-                }
+            if (menuOverlay) {
+                menuOverlay.addEventListener('click', closeMenu);
             }
             
-            // Agregar manejadores de eventos para los enlaces del menú
-            const navItems = document.querySelectorAll('.nav-links a:not(.btn)');
-            navItems.forEach(item => {
-                // Eliminar manejadores anteriores para evitar duplicados
-                item.removeEventListener('click', handleMenuLinkClick);
-                item.removeEventListener('touchstart', handleMenuLinkClick);
-                
-                // Agregar manejadores para clic y toque
-                item.addEventListener('click', handleMenuLinkClick);
-                item.addEventListener('touchstart', handleMenuLinkClick, {passive: true});
+            // Manejar clics en los enlaces del menú
+            if (navLinks) {
+                // Usar delegación de eventos para manejar clics en los enlaces
+                navLinks.addEventListener('click', function(e) {
+                    const link = e.target.closest('a');
+                    if (!link) return;
+                    
+                    const href = link.getAttribute('href');
+                    
+                    // Solo manejar enlaces internos que comienzan con #
+                    if (href && href.startsWith('#')) {
+                        e.preventDefault();
+                        const targetElement = document.querySelector(href);
+                        
+                        // Cerrar el menú primero
+                        closeMenu();
+                        
+                        // Desplazarse al elemento objetivo después de cerrar el menú
+                        if (targetElement) {
+                            setTimeout(() => {
+                                targetElement.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start'
+                                });
+                            }, 350);
+                        }
+                    }
+                });
                 
                 // Mejorar la retroalimentación táctil
-                item.addEventListener('touchstart', function() {
-                    this.classList.add('touch-active');
-                }, {passive: true});
+                navLinks.addEventListener('touchstart', function(e) {
+                    const link = e.target.closest('a');
+                    if (link) link.classList.add('touch-active');
+                }, { passive: true });
                 
-                item.addEventListener('touchend', function() {
-                    this.classList.remove('touch-active');
-                }, {passive: true});
-            });
+                navLinks.addEventListener('touchend', function() {
+                    const activeLink = navLinks.querySelector('.touch-active');
+                    if (activeLink) activeLink.classList.remove('touch-active');
+                }, { passive: true });
+            }
             
             // Manejar cambios de tamaño de pantalla
             function handleResize() {
                 if (window.innerWidth > 768) {
                     // En pantallas grandes, asegurarse de que el menú esté visible
                     if (navLinks) {
+                        navLinks.style.display = 'flex';
                         navLinks.style.transform = '';
                         navLinks.classList.remove('active');
                     }
                     body.classList.remove('menu-open');
-                    menuOverlay.style.display = 'none';
+                    if (menuOverlay) menuOverlay.style.display = 'none';
                     body.style.overflow = '';
                     isMenuOpen = false;
-                    if (navLinks) {
-                        navLinks.style.display = 'flex';
-                        navLinks.classList.remove('active');
-                    }
-                    body.classList.remove('menu-open');
-                    menuOverlay.style.display = 'none';
-                } else {
-                    // En móviles, asegurar que el menú esté oculto por defecto
-                    if (navLinks && !navLinks.classList.contains('active')) {
-                        navLinks.style.display = 'none';
-                    }
+                } else if (navLinks && !isMenuOpen) {
+                    // En móviles, asegurarse de que el menú esté oculto inicialmente
+                    navLinks.style.display = 'none';
                 }
             }
             
-            // Inicializar
-            handleResize();
+            // Cerrar menú al presionar la tecla Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && isMenuOpen) {
+                    closeMenu();
+                }
+            });
+            
+            // Inicialización
             window.addEventListener('resize', handleResize);
+            handleResize();
         });
     </script>
 
