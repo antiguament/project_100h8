@@ -19,6 +19,7 @@ class Category extends Model
         'name',
         'slug',
         'description',
+        'image',
         'is_active'
     ];
 
@@ -66,5 +67,33 @@ class Category extends Model
     public function products()
     {
         return $this->hasMany(Product::class);
+    }
+
+    /**
+     * Get the URL to the category's image.
+     *
+     * @return string|null
+     */
+    public function getImageUrlAttribute()
+    {
+        if (!$this->image) {
+            return null;
+        }
+
+        // If the image is already a full URL, return it as is
+        if (filter_var($this->image, FILTER_VALIDATE_URL)) {
+            return $this->image;
+        }
+
+        // If the image starts with http, assume it's a full URL
+        if (strpos($this->image, 'http') === 0) {
+            return $this->image;
+        }
+
+        // Get just the filename from the path
+        $filename = basename($this->image);
+        
+        // Use the direct route to serve the image
+        return url('/images/categories/' . $filename);
     }
 }

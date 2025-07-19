@@ -41,6 +41,9 @@
                             <th>Categoría</th>
                             <th>Precio</th>
                             <th>Stock</th>
+                            <th>Preferencia 1</th>
+                            <th>Preferencia 2</th>
+                            <th>Preferencia 3</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
@@ -64,6 +67,9 @@
                                 <td>{{ $product->category->name }}</td>
                                 <td>${{ number_format($product->price, 2) }}</td>
                                 <td>{{ $product->stock }}</td>
+                                <td>{{ $product->preferencia_uno ?? '-' }}</td>
+                                <td>{{ $product->preferencia_dos ?? '-' }}</td>
+                                <td>{{ $product->preferencia_tres ?? '-' }}</td>
                                 <td>
                                     <span class="badge {{ $product->is_active ? 'bg-success' : 'bg-secondary' }}">
                                         {{ $product->is_active ? 'Activo' : 'Inactivo' }}
@@ -87,7 +93,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center">No hay productos registrados</td>
+                                <td colspan="11" class="text-center">No hay productos registrados</td>
                             </tr>
                         @endforelse
                     </tbody>

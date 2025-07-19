@@ -17,6 +17,11 @@
             {{ session('success') }}
         </div>
     @endif
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
 
     <div class="card">
         <div class="card-body">
@@ -25,6 +30,7 @@
                     <thead>
                         <tr>
                             <th>ID</th>
+                            <th>Imagen</th>
                             <th>Nombre</th>
                             <th>Slug</th>
                             <th>Estado</th>
@@ -35,6 +41,15 @@
                         @forelse($categories as $category)
                             <tr>
                                 <td>{{ $category->id }}</td>
+                                <td>
+                                    @if($category->image_url)
+                                        <img src="{{ $category->image_url }}" alt="{{ $category->name }}" class="img-thumbnail" style="max-width: 50px; max-height: 50px;">
+                                    @else
+                                        <div class="bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                            <i class="fas fa-image text-muted"></i>
+                                        </div>
+                                    @endif
+                                </td>
                                 <td>{{ $category->name }}</td>
                                 <td>{{ $category->slug }}</td>
                                 <td>

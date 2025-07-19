@@ -24,7 +24,16 @@ class Product extends Model
         'price',
         'stock',
         'image',
-        'is_active'
+        'is_active',
+        'preferencia_uno',
+        'preferencia_dos',
+        'preferencia_tres',
+        'opciones_preferencia_uno',
+        'opciones_preferencia_dos',
+        'opciones_preferencia_tres',
+        'max_selecciones_uno',
+        'max_selecciones_dos',
+        'max_selecciones_tres'
     ];
 
     /**
@@ -33,12 +42,32 @@ class Product extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'price' => 'decimal:2',
+        'price' => 'float',
         'stock' => 'integer',
         'is_active' => 'boolean',
+        'opciones_preferencia_uno' => 'array',
+        'opciones_preferencia_dos' => 'array',
+        'opciones_preferencia_tres' => 'array',
+        'max_selecciones_uno' => 'integer',
+        'max_selecciones_dos' => 'integer',
+        'max_selecciones_tres' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
+    ];
+
+    /**
+     * The attributes that should be set to their respective default values.
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'opciones_preferencia_uno' => '[]',
+        'opciones_preferencia_dos' => '[]',
+        'opciones_preferencia_tres' => '[]',
+        'max_selecciones_uno' => 1,
+        'max_selecciones_dos' => 1,
+        'max_selecciones_tres' => 1,
     ];
 
     /**

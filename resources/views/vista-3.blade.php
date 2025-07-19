@@ -65,28 +65,93 @@
                     </p>
                 </div>
 
-                <!-- Acciones -->
-                <div class="d-flex flex-wrap gap-3 mb-4">
-                    <!-- Selector de cantidad -->
-                    <div class="quantity-selector d-flex align-items-center mb-2">
-                        <button class="btn btn-outline-secondary quantity-btn minus" type="button">-</button>
-                        <input type="number" class="form-control text-center quantity-input" value="1" min="1" max="{{ $product->stock }}" style="width: 70px;">
-                        <button class="btn btn-outline-secondary quantity-btn plus" type="button">+</button>
+                @php
+                    $preferences = [
+                        'uno' => [
+                            'titulo' => $product->preferencia_uno,
+                            'opciones' => $product->opciones_preferencia_uno ?? [],
+                            'max_selecciones' => $product->max_selecciones_uno ?? 1
+                        ],
+                        'dos' => [
+                            'titulo' => $product->preferencia_dos,
+                            'opciones' => $product->opciones_preferencia_dos ?? [],
+                            'max_selecciones' => $product->max_selecciones_dos ?? 1
+                        ],
+                        'tres' => [
+                            'titulo' => $product->preferencia_tres,
+                            'opciones' => $product->opciones_preferencia_tres ?? [],
+                            'max_selecciones' => $product->max_selecciones_tres ?? 1
+                        ]
+                    ];
+                @endphp
+
+                @if($product->preferencia_uno || $product->preferencia_dos || $product->preferencia_tres)
+                <div class="preferences-section mb-4">
+                    <h5 class="mb-3">Personaliza tu pedido</h5>
+                    <div class="row g-4">
+                        @foreach(['uno', 'dos', 'tres'] as $prefNum)
+                            @if(!empty($preferences[$prefNum]['titulo']) && count($preferences[$prefNum]['opciones']) > 0)
+                            <div class="col-12">
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <h6 class="card-title mb-3">
+                                            {{ $preferences[$prefNum]['titulo'] }}
+                                            <small class="text-muted">(Selecciona hasta {{ $preferences[$prefNum]['max_selecciones'] }})</small>
+                                        </h6>
+                                        <div class="preference-options" data-max-selections="{{ $preferences[$prefNum]['max_selecciones'] }}">
+                                            @foreach($preferences[$prefNum]['opciones'] as $index => $opcion)
+                                                @if(!empty(trim($opcion)))
+                                                <div class="form-check mb-2">
+                                                    <input class="form-check-input preference-option" 
+                                                           type="checkbox" 
+                                                           name="preferencia_{{ $prefNum }}[]" 
+                                                           value="{{ $opcion }}" 
+                                                           id="pref-{{ $prefNum }}-{{ $index }}"
+                                                           data-pref="{{ $prefNum }}">
+                                                    <label class="form-check-label" for="pref-{{ $prefNum }}-{{ $index }}">
+                                                        {{ $opcion }}
+                                                    </label>
+                                                </div>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+                        @endforeach
                     </div>
-                    
-                    <!-- Botón de añadir al carrito -->
-                    <button class="btn btn-primary px-4 mb-2 add-to-cart" 
-                            data-id="{{ $product->id }}"
-                            {{ $product->stock <= 0 ? 'disabled' : '' }}>
-                        <i class="fas fa-shopping-cart me-2"></i>
-                        {{ $product->stock > 0 ? 'Añadir al carrito' : 'Sin stock' }}
-                    </button>
-                    
-                    <!-- Botón de lista de deseos (opcional) -->
-                    <button class="btn btn-outline-secondary mb-2" title="Añadir a la lista de deseos">
-                        <i class="far fa-heart"></i>
-                    </button>
                 </div>
+                @endif
+
+                <!-- Acciones -->
+                <form id="add-to-cart-form" class="w-100">
+                    @csrf
+                    <input type="hidden" name="product_id" value="{{ $product->id }}">
+                    <input type="hidden" name="quantity" value="1" class="quantity-input">
+                    
+                    <!-- Selector de cantidad -->
+                    <div class="d-flex flex-wrap gap-3 mb-4">
+                        <div class="quantity-selector d-flex align-items-center mb-2">
+                            <button type="button" class="btn btn-outline-secondary quantity-btn minus">-</button>
+                            <input type="number" class="form-control text-center quantity-display" value="1" min="1" max="{{ $product->stock }}" style="width: 70px;" readonly>
+                            <button type="button" class="btn btn-outline-secondary quantity-btn plus">+</button>
+                        </div>
+                        
+                        <!-- Botón de añadir al carrito -->
+                        <button type="button" class="btn btn-primary px-4 mb-2 add-to-cart" 
+                                data-id="{{ $product->id }}"
+                                {{ $product->stock <= 0 ? 'disabled' : '' }}>
+                            <i class="fas fa-shopping-cart me-2"></i>
+                            {{ $product->stock > 0 ? 'Añadir al carrito' : 'Sin stock' }}
+                        </button>
+                    
+                        <!-- Botón de lista de deseos (opcional) -->
+                        <button type="button" class="btn btn-outline-secondary mb-2" title="Añadir a la lista de deseos">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+                </form>
 
                 <!-- Stock disponible -->
                 <div class="mb-4">
@@ -241,14 +306,18 @@
 $(document).ready(function() {
     // Manejar el selector de cantidad
     $('.quantity-btn').click(function() {
-        var input = $(this).siblings('.quantity-input');
-        var currentVal = parseInt(input.val());
-        var max = parseInt(input.attr('max'));
+        var container = $(this).closest('.quantity-selector');
+        var display = container.find('.quantity-display');
+        var hiddenInput = container.siblings('input[name="quantity"]');
+        var currentVal = parseInt(display.val());
+        var max = parseInt(display.attr('max'));
         
         if ($(this).hasClass('plus') && currentVal < max) {
-            input.val(currentVal + 1);
+            display.val(currentVal + 1);
+            hiddenInput.val(currentVal + 1);
         } else if ($(this).hasClass('minus') && currentVal > 1) {
-            input.val(currentVal - 1);
+            display.val(currentVal - 1);
+            hiddenInput.val(currentVal - 1);
         }
     });
     
@@ -267,73 +336,146 @@ $(document).ready(function() {
         }
     });
     
-    // Añadir al carrito
+    // Manejar la selección de opciones de preferencia
+    $('.preference-option').on('change', function() {
+        const prefNum = $(this).data('pref');
+        const maxSelections = parseInt($(this).closest('.preference-options').data('max-selections'));
+        const selectedCount = $(`input[name="preferencia_${prefNum}[]"]:checked`).length;
+        
+        // Si se supera el máximo de selecciones, desmarcar el último seleccionado
+        if (selectedCount > maxSelections) {
+            $(this).prop('checked', false);
+            
+            // Mostrar mensaje al usuario
+            Swal.fire({
+                icon: 'info',
+                title: 'Límite de selecciones',
+                text: `Solo puedes seleccionar hasta ${maxSelections} opción(es) para esta preferencia`,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+    });
+    
+    // Manejar el botón de añadir al carrito
     $('.add-to-cart').click(function(e) {
         e.preventDefault();
-        var button = $(this);
-        var productId = button.data('id');
-        var quantity = parseInt($('.quantity-input').val());
         
-        // Deshabilitar el botón para evitar múltiples clics
+        const button = $(this);
+        const form = $('#add-to-cart-form');
+        const formData = new FormData(form[0]);
+        
+        // Validar preferencias seleccionadas
+        let hasPreferenceError = false;
+        
+        // Para cada grupo de preferencias
+        $('.preference-options').each(function() {
+            const prefNum = $(this).find('.preference-option').first().data('pref');
+            const selectedOptions = $(`input[name="preferencia_${prefNum}[]"]:checked`);
+            const minSelections = 1; // Mínimo 1 selección requerida
+            const maxSelections = parseInt($(this).data('max-selections'));
+            
+            // Verificar si se ha seleccionado al menos una opción
+            if (selectedOptions.length < minSelections) {
+                const prefTitle = $(`h6:contains('${prefNum}')`).text().trim();
+                
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Selección requerida',
+                    text: `Por favor selecciona al menos una opción para ${$(this).closest('.card').find('.card-title').text().split('(')[0].trim()}`,
+                    confirmButtonText: 'Entendido'
+                });
+                
+                hasPreferenceError = true;
+                return false; // Salir del bucle each
+            }
+            
+            // Verificar si se excede el máximo de selecciones
+            if (selectedOptions.length > maxSelections) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Demasiadas selecciones',
+                    text: `Solo puedes seleccionar hasta ${maxSelections} opción(es) para esta preferencia`,
+                    confirmButtonText: 'Entendido'
+                });
+                
+                hasPreferenceError = true;
+                return false; // Salir del bucle each
+            }
+            
+            // Agregar las opciones seleccionadas al formData
+            const selectedValues = [];
+            selectedOptions.each(function() {
+                selectedValues.push($(this).val());
+            });
+            
+            // Agregar las opciones seleccionadas como un array
+            formData.delete(`preferencia_${prefNum}[]`); // Eliminar entradas anteriores
+            selectedValues.forEach(value => {
+                formData.append(`preferencia_${prefNum}[]`, value);
+            });
+        });
+        
+        // Si hay errores de validación, no continuar
+        if (hasPreferenceError) {
+            return false;
+        }
+        
+        // Mostrar loading
         button.prop('disabled', true);
-        button.html('<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Agregando...');
+        button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Añadiendo...');
         
-        // Construir la URL correctamente
-        var url = '{{ url("/cart/add") }}/' + productId;
+        // Obtener el ID del producto
+        const productId = $('input[name="product_id"]').val();
         
-        // Mostrar mensaje de depuración
-        console.log('URL de la petición:', url);
-        console.log('ID del producto:', productId);
-        console.log('Cantidad:', quantity);
-        console.log('Token CSRF:', '{{ csrf_token() }}');
-        
-        // Realizar la petición AJAX
+        // Enviar la solicitud AJAX
         $.ajax({
-            url: url,
-            type: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                quantity: quantity
+            url: `/cart/add/${productId}`,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
             success: function(response) {
-                console.log('Respuesta del servidor:', response);
-                
-                // Verificar si la respuesta es exitosa
-                if (response.success && response.cart_count !== undefined) {
-                    // Actualizar el contador del carrito
-                    $('.cart-count').text(response.cart_count).removeClass('d-none');
-                    
-                    // Mostrar notificación de éxito
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡Producto añadido!',
-                        text: 'El producto se ha añadido al carrito',
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 2000
-                    });
-                } else {
-                    // Mostrar mensaje de error si la respuesta no es exitosa
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: response.message || 'No se pudo agregar el producto al carrito',
-                        toast: true,
-                        position: 'top-end',
-                        showConfirmButton: false,
-                        timer: 3000
-                    });
+                // Actualizar el contador del carrito
+                if (typeof updateCartCount === 'function') {
+                    updateCartCount(response.cart_count || response.cartCount);
+                } else if (response.cart_count) {
+                    $('.cart-count').text(response.cart_count);
                 }
+                
+                // Mostrar notificación de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Producto añadido!',
+                    text: response.message || 'El producto se ha añadido a tu carrito',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                
+                // Resetear el formulario
+                form.trigger('reset');
+                $('.quantity-display').val(1);
+                $('.quantity-input').val(1);
+                $('.preference-option').prop('checked', false);
             },
-            error: function(xhr, status, error) {
-                console.error('Error al agregar al carrito:', error);
-                button.html('<i class="fas fa-shopping-cart me-2"></i>Añadir al carrito');
-                button.prop('disabled', false);
+            error: function(xhr) {
+                let errorMessage = 'Ha ocurrido un error al agregar el producto al carrito';
                 
-                var errorMessage = 'Ocurrió un error al agregar el producto al carrito';
-                
-                if (xhr.responseJSON && xhr.responseJSON.message) {
+                if (xhr.status === 422) {
+                    const errors = xhr.responseJSON.errors;
+                    errorMessage = Object.values(errors)[0][0];
+                } else if (xhr.status === 401) {
+                    errorMessage = 'Debes iniciar sesión para agregar productos al carrito';
+                    window.location.href = '{{ route('login') }}';
+                    return;
+                } else if (xhr.responseJSON && xhr.responseJSON.message) {
                     errorMessage = xhr.responseJSON.message;
                 }
                 
@@ -341,16 +483,13 @@ $(document).ready(function() {
                     icon: 'error',
                     title: 'Error',
                     text: errorMessage,
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
+                    confirmButtonText: 'Entendido'
                 });
             },
             complete: function() {
                 // Restaurar el botón
-                button.html('<i class="fas fa-shopping-cart me-2"></i>Añadir al carrito');
                 button.prop('disabled', false);
+                button.html('<i class="fas fa-shopping-cart me-2"></i> Añadir al carrito');
             }
         });
     });

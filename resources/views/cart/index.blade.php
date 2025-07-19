@@ -393,17 +393,55 @@
                                             <i class="fas fa-image text-muted" style="font-size: 2rem;"></i>
                                         </div>
                                     @endif
-                                    <div class="product-details">
-                                        <h3 class="product-title">{{ $item['name'] }}</h3>
-                                        <div class="product-price">${{ number_format($item['price'], 2) }}</div>
-                                        
-                                        <!-- Selector de cantidad -->
-                                     
-                                        
-                                      
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="product-price fw-bold">${{ number_format($item['price'] * $item['quantity'], 2) }}</div>
+                                    <div class="product-details flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h5 class="product-title mb-1">{{ $item['name'] }}</h5>
+                                                <p class="product-price mb-2">${{ number_format($item['price'], 0, ',', '.') }}</p>
+                                                
+                                                <!-- Mostrar preferencias si existen -->
+                                                @if(!empty($item['preferences']))
+                                                    <div class="product-preferences mt-2">
+                                                        @foreach($item['preferences'] as $key => $value)
+                                                            @if(!empty($value))
+                                                                <div class="preference-item">
+                                                                    <small class="text-muted">
+                                                                        {{ ucfirst(str_replace('_', ' ', $key)) }}: 
+                                                                        <span class="text-dark fw-bold">
+                                                                            @if(is_array($value))
+                                                                                {{ implode(', ', $value) }}
+                                                                            @else
+                                                                                {{ $value }}
+                                                                            @endif
+                                                                        </span>
+                                                                    </small>
+                                                                </div>
+                                                            @endif
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="quantity-selector me-3">
+                                                    <button class="btn btn-sm btn-outline-secondary quantity-btn minus" data-id="{{ $id }}">-</button>
+                                                    <input type="number" class="form-control form-control-sm text-center quantity-input" 
+                                                           value="{{ $item['quantity'] }}" min="1" max="{{ $item['stock'] ?? 100 }}" 
+                                                           data-id="{{ $id }}" style="width: 50px;">
+                                                    <button class="btn btn-sm btn-outline-secondary quantity-btn plus" data-id="{{ $id }}">+</button>
+                                                </div>
+                                                <button class="btn btn-sm btn-outline-danger remove-from-cart" data-id="{{ $id }}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                            <p class="mb-0 text-muted">
+                                                Stock: {{ $item['stock'] ?? 'No disponible' }}
+                                            </p>
+                                            <p class="mb-0 fw-bold">
+                                                ${{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach
@@ -822,6 +860,60 @@
             var itemText = itemCount === 1 ? 'producto' : 'productos';
             $('.summary-row:first span:first').text('Subtotal (' + itemCount + ' ' + itemText + ')');
         }
+    });
+    
+    // Manejar el envío del formulario de WhatsApp
+    $('#whatsappForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const form = $(this);
+        const submitBtn = form.find('button[type="submit"]');
+        const originalBtnText = submitBtn.html();
+        
+        // Mostrar indicador de carga
+        submitBtn.prop('disabled', true);
+        submitBtn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enviando...');
+        
+        // Enviar la solicitud AJAX
+        $.ajax({
+            url: '{{ route("cart.send.whatsapp") }}',
+            method: 'POST',
+            data: form.serialize(),
+            success: function(response) {
+                if (response.success) {
+                    // Cerrar el modal
+                    $('#whatsappModal').modal('hide');
+                    
+                    // Redirigir a WhatsApp
+                    window.location.href = response.redirect_url;
+                    
+                    // Limpiar el carrito después de un breve retraso
+                    setTimeout(function() {
+                        // Opcional: Limpiar el carrito después de enviar por WhatsApp
+                        // $.post('{{ route("cart.clear") }}', {
+                        //     _token: '{{ csrf_token() }}'
+                        // }, function() {
+                        //     // Recargar la página para actualizar el carrito
+                        //     window.location.reload();
+                        // });
+                    }, 1000);
+                } else {
+                    showAlert('error', 'Error', response.message || 'Ocurrió un error al procesar tu pedido');
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Ocurrió un error al enviar el pedido';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                showAlert('error', 'Error', errorMessage);
+            },
+            complete: function() {
+                // Restaurar el botón
+                submitBtn.prop('disabled', false);
+                submitBtn.html(originalBtnText);
+            }
+        });
     });
 </script>
 @endpush

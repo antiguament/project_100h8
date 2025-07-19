@@ -33,11 +33,45 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
+        \Log::info('Store method called', ['request' => $request->all(), 'files' => $request->hasFile('image')]);
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories',
             'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:51200', // 50MB max
             'is_active' => 'boolean',
+        ], [
+            'image.max' => 'La imagen no debe pesar más de 50MB',
+            'image.mimes' => 'El archivo debe ser una imagen (jpeg, png, jpg, gif, webp)',
+            'image.uploaded' => 'El archivo es demasiado grande. El tamaño máximo permitido es 50MB',
         ]);
+
+        \Log::info('Validation passed', ['validated' => $validated]);
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            $image = $request->file('image');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            
+            // Ensure the directory exists
+            $directory = storage_path('app/public/categories');
+            if (!file_exists($directory)) {
+                mkdir($directory, 0755, true);
+            }
+            
+            // Move the file to the correct location
+            $image->move($directory, $imageName);
+            
+            // Store the relative path in the database
+            $validated['image'] = 'categories/' . $imageName;
+            
+            \Log::info('Image uploaded successfully', [
+                'original_name' => $image->getClientOriginalName(),
+                'saved_path' => $validated['image'],
+                'full_path' => $directory . '/' . $imageName,
+                'file_exists' => file_exists($directory . '/' . $imageName)
+            ]);
+        }
 
         Category::create($validated);
 
@@ -91,15 +125,50 @@ class CategoryController extends Controller
     public function update(Request $request, Category $category)
     {
         $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('categories')->ignore($category->id),
-            ],
+            'name' => ['required', 'string', 'max:255', Rule::unique('categories')->ignore($category->id)],
             'description' => 'nullable|string',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:51200', // 50MB max
             'is_active' => 'boolean',
+            'remove_image' => 'nullable|boolean',
+        ], [
+            'image.max' => 'La imagen no debe pesar más de 50MB',
+            'image.mimes' => 'El archivo debe ser una imagen (jpeg, png, jpg, gif, webp)',
+            'image.uploaded' => 'El archivo es demasiado grande. El tamaño máximo permitido es 50MB',
         ]);
+
+        // Handle image removal
+        if ($request->has('remove_image') && $request->remove_image) {
+            if ($category->image) {
+                $oldImagePath = storage_path('app/public/' . $category->image);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+                $validated['image'] = null;
+            }
+        }
+        // Handle new image upload
+        elseif ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($category->image) {
+                $oldImagePath = storage_path('app/public/' . $category->image);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+            
+            $image = $request->file('image');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            
+            // Ensure the directory exists
+            $directory = storage_path('app/public/categories');
+            if (!file_exists($directory)) {
+                mkdir($directory, 0755, true);
+            }
+            
+            // Move the file to the correct location
+            $image->move($directory, $imageName);
+            $validated['image'] = 'categories/' . $imageName;
+        }
 
         $category->update($validated);
 

@@ -37,14 +37,49 @@ class CartController extends Controller
                 ], 422);
             }
             
-            // Agregar al carrito
+            // Obtener preferencias del request
+            $preferences = [];
+            
+            // Obtener preferencias como arrays
+            if ($product->preferencia_uno) {
+                $prefsUno = $request->input('preferencia_uno', []);
+                if (is_array($prefsUno) && !empty($prefsUno)) {
+                    $preferences['preferencia_uno'] = $prefsUno;
+                } elseif (is_string($prefsUno) && !empty($prefsUno)) {
+                    $preferences['preferencia_uno'] = [$prefsUno];
+                }
+            }
+            
+            if ($product->preferencia_dos) {
+                $prefsDos = $request->input('preferencia_dos', []);
+                if (is_array($prefsDos) && !empty($prefsDos)) {
+                    $preferences['preferencia_dos'] = $prefsDos;
+                } elseif (is_string($prefsDos) && !empty($prefsDos)) {
+                    $preferences['preferencia_dos'] = [$prefsDos];
+                }
+            }
+            
+            if ($product->preferencia_tres) {
+                $prefsTres = $request->input('preferencia_tres', []);
+                if (is_array($prefsTres) && !empty($prefsTres)) {
+                    $preferences['preferencia_tres'] = $prefsTres;
+                } elseif (is_string($prefsTres) && !empty($prefsTres)) {
+                    $preferences['preferencia_tres'] = [$prefsTres];
+                }
+            }
+            
+            // Convertir preferencias a JSON para almacenamiento
+            $preferencesJson = !empty($preferences) ? json_encode($preferences) : null;
+            
+            // Agregar al carrito con las preferencias
             Cart::add(
                 $product->id,
                 $product->name,
                 $product->price,
                 $quantity,
                 $product->image_url,
-                $product->stock
+                $product->stock,
+                $preferencesJson
             );
             
             return response()->json([
@@ -152,19 +187,42 @@ class CartController extends Controller
         }
         
         // Construir el mensaje de WhatsApp
-        $message = "*Nuevo Pedido*\n\n";
+        $message = "*NUEVO PEDIDO*\n\n";
         $message .= "*Cliente*: " . (auth()->check() ? auth()->user()->name : 'Cliente no registrado') . "\n";
         $message .= "*Fecha*: " . now()->format('d/m/Y H:i:s') . "\n\n";
-        $message .= "*Productos:*\n";
+        $message .= "*DETALLES DEL PEDIDO*\n";
+        $message .= "══════════════════════\n\n";
         
         foreach ($cart as $id => $item) {
-            $message .= "- " . $item['name'] . " (x" . $item['quantity'] . ") - $" . number_format($item['price'] * $item['quantity'], 2) . "\n";
+            $message .= "*" . $item['name'] . "*\n";
+            $message .= "Cantidad: " . $item['quantity'] . " x $" . number_format($item['price'], 2) . " = *$" . number_format($item['price'] * $item['quantity'], 2) . "*\n";
+            
+            // Mostrar preferencias si existen
+            if (!empty($item['preferences'])) {
+                $message .= "*Preferencias:*\n";
+                foreach ($item['preferences'] as $key => $value) {
+                    if (!empty($value)) {
+                        $prefName = ucwords(str_replace('_', ' ', $key));
+                        if (is_array($value)) {
+                            $message .= "- $prefName: " . implode(', ', $value) . "\n";
+                        } else {
+                            $message .= "- $prefName: $value\n";
+                        }
+                    }
+                }
+            }
+            $message .= "\n";
         }
         
-        $message .= "\n*Total: $" . number_format($total, 2) . "*\n\n";
-        $message .= "*Datos de contacto:*\n";
-        $message .= "Teléfono: " . ($request->phone ?? 'No proporcionado') . "\n";
-        $message .= "Notas: " . ($request->notes ?? 'Ninguna');
+        $message .= "══════════════════════\n";
+        $message .= "*TOTAL DEL PEDIDO: $" . number_format($total, 2) . "*\n\n";
+        
+        $message .= "*INFORMACIÓN DEL CLIENTE*\n";
+        $message .= "══════════════════════\n";
+        $message .= "📱 *Teléfono*: " . ($request->phone ?? 'No proporcionado') . "\n";
+        $message .= "📝 *Notas*: " . ($request->notes ?? 'Ninguna') . "\n\n";
+        
+        $message .= "_Hora del pedido: " . now()->format('H:i:s') . "_";
         
         // Número de teléfono de destino (formato internacional sin signos)
         $phoneNumber = '573128658195'; // Número en formato internacional sin signos

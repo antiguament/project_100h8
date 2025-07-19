@@ -60,7 +60,37 @@ class ProductController extends Controller
             'stock' => 'required|integer|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'is_active' => 'boolean',
+            'preferencia_uno' => 'nullable|string|max:255',
+            'preferencia_dos' => 'nullable|string|max:255',
+            'preferencia_tres' => 'nullable|string|max:255',
+            'opciones_preferencia_uno' => 'nullable|array',
+            'opciones_preferencia_dos' => 'nullable|array',
+            'opciones_preferencia_tres' => 'nullable|array',
+            'max_selecciones_uno' => 'nullable|integer|min:1|max:3',
+            'max_selecciones_dos' => 'nullable|integer|min:1|max:3',
+            'max_selecciones_tres' => 'nullable|integer|min:1|max:3',
         ]);
+
+        // Procesar opciones de preferencias
+        foreach (['uno', 'dos', 'tres'] as $pref) {
+            $opcionesKey = "opciones_preferencia_$pref";
+            $maxKey = "max_selecciones_$pref";
+            
+            if (isset($validated[$opcionesKey]) && is_array($validated[$opcionesKey])) {
+                // Filtrar valores vacíos y limpiar el array
+                $opciones = array_filter($validated[$opcionesKey], function($value) {
+                    return !empty(trim($value));
+                });
+                $validated[$opcionesKey] = array_values($opciones); // Reindexar el array
+            } else {
+                $validated[$opcionesKey] = [];
+            }
+            
+            // Si no se proporciona un valor para max_selecciones, establecer el valor por defecto
+            if (!isset($validated[$maxKey])) {
+                $validated[$maxKey] = 1;
+            }
+        }
 
         if ($request->hasFile('image')) {
             $imagePath = $request->file('image')->store('products', 'public');
@@ -110,7 +140,37 @@ class ProductController extends Controller
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'is_active' => 'boolean',
             'remove_image' => 'sometimes|boolean',
+            'preferencia_uno' => 'nullable|string|max:255',
+            'preferencia_dos' => 'nullable|string|max:255',
+            'preferencia_tres' => 'nullable|string|max:255',
+            'opciones_preferencia_uno' => 'nullable|array',
+            'opciones_preferencia_dos' => 'nullable|array',
+            'opciones_preferencia_tres' => 'nullable|array',
+            'max_selecciones_uno' => 'nullable|integer|min:1|max:3',
+            'max_selecciones_dos' => 'nullable|integer|min:1|max:3',
+            'max_selecciones_tres' => 'nullable|integer|min:1|max:3',
         ]);
+        
+        // Procesar opciones de preferencias
+        foreach (['uno', 'dos', 'tres'] as $pref) {
+            $opcionesKey = "opciones_preferencia_$pref";
+            $maxKey = "max_selecciones_$pref";
+            
+            if (isset($validated[$opcionesKey]) && is_array($validated[$opcionesKey])) {
+                // Filtrar valores vacíos y limpiar el array
+                $opciones = array_filter($validated[$opcionesKey], function($value) {
+                    return !empty(trim($value));
+                });
+                $validated[$opcionesKey] = array_values($opciones); // Reindexar el array
+            } else {
+                $validated[$opcionesKey] = [];
+            }
+            
+            // Si no se proporciona un valor para max_selecciones, mantener el valor actual
+            if (!isset($validated[$maxKey])) {
+                $validated[$maxKey] = $product->{$maxKey} ?? 1;
+            }
+        }
 
         if ($request->has('remove_image') && $request->remove_image) {
             if ($product->image) {

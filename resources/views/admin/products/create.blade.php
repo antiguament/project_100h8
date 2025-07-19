@@ -117,6 +117,82 @@
                     @enderror
                 </div>
 
+                @foreach(['uno', 'dos', 'tres'] as $prefNum)
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5>Preferencia {{ ucfirst($prefNum) }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="preferencia_{{ $prefNum }}">Título de la Preferencia</label>
+                                    <input type="text" name="preferencia_{{ $prefNum }}" id="preferencia_{{ $prefNum }}" 
+                                           class="form-control @error('preferencia_'.$prefNum) is-invalid @enderror" 
+                                           value="{{ old('preferencia_'.$prefNum) }}"
+                                           placeholder="Ej: Toppings, Ingredientes, etc.">
+                                    @error('preferencia_'.$prefNum)
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="max_selecciones_{{ $prefNum }}">Máximo de opciones seleccionables</label>
+                                    <select name="max_selecciones_{{ $prefNum }}" id="max_selecciones_{{ $prefNum }}" 
+                                            class="form-control @error('max_selecciones_'.$prefNum) is-invalid @enderror">
+                                        @for($i = 1; $i <= 3; $i++)
+                                            <option value="{{ $i }}" {{ old('max_selecciones_'.$prefNum, 1) == $i ? 'selected' : '' }}>
+                                                {{ $i }} {{ $i == 1 ? 'opción' : 'opciones' }}
+                                            </option>
+                                        @endfor
+                                    </select>
+                                    @error('max_selecciones_'.$prefNum)
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Opciones de {{ strtolower($prefNum) == 'uno' ? 'la' : 'la' }} preferencia</label>
+                            <small class="form-text text-muted mb-2 d-block">
+                                Agregue las opciones que estarán disponibles para esta preferencia.
+                            </small>
+                            
+                            <div id="opciones-container-{{ $prefNum }}">
+                                @php
+                                    $oldValues = old('opciones_preferencia_'.$prefNum, ['', '', '']);
+                                @endphp
+                                
+                                @for($i = 0; $i < 3; $i++)
+                                    <div class="input-group mb-2">
+                                        <input type="text" 
+                                               name="opciones_preferencia_{{ $prefNum }}[]" 
+                                               class="form-control" 
+                                               value="{{ $oldValues[$i] ?? '' }}"
+                                               placeholder="Opción {{ $i + 1 }}">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-outline-secondary remove-option" type="button" data-pref="{{ $prefNum }}">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                @endfor
+                            </div>
+                            
+                            <button type="button" class="btn btn-sm btn-outline-primary add-option mt-2" data-pref="{{ $prefNum }}">
+                                <i class="fas fa-plus"></i> Agregar opción
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+
                 <div class="form-group text-right">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Guardar Producto
@@ -130,10 +206,116 @@
 @push('js')
     <script>
         // Mostrar el nombre del archivo seleccionado
-        document.querySelector('.custom-file-input').addEventListener('change', function(e) {
-            var fileName = document.getElementById("image").files[0].name;
+        document.getElementById('image')?.addEventListener('change', function(e) {
+            var fileName = e.target.files[0] ? e.target.files[0].name : 'Ningún archivo seleccionado';
             var nextSibling = e.target.nextElementSibling;
-            nextSibling.innerText = fileName;
+            if (nextSibling) {
+                nextSibling.innerText = fileName;
+            }
+        });
+
+        // Función para agregar una nueva opción a una preferencia
+        function addOption(pref) {
+            const container = document.getElementById(`opciones-container-${pref}`);
+            const optionCount = container.querySelectorAll('input[type="text"]').length;
+            
+            if (optionCount >= 10) {
+                alert('No se pueden agregar más de 10 opciones por preferencia');
+                return;
+            }
+            
+            const newOption = document.createElement('div');
+            newOption.className = 'input-group mb-2';
+            newOption.innerHTML = `
+                <input type="text" 
+                       name="opciones_preferencia_${pref}[]" 
+                       class="form-control" 
+                       placeholder="Opción ${optionCount + 1}">
+                <div class="input-group-append">
+                    <button class="btn btn-outline-secondary remove-option" type="button" data-pref="${pref}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(newOption);
+            
+            // Agregar evento al nuevo botón de eliminar
+            newOption.querySelector('.remove-option').addEventListener('click', function() {
+                removeOption(this);
+            });
+        }
+        
+        // Función para eliminar una opción
+        function removeOption(button) {
+            const container = button.closest('.input-group');
+            if (container) {
+                container.remove();
+                // Renumerar las opciones restantes
+                const pref = button.dataset.pref;
+                const inputs = document.querySelectorAll(`#opciones-container-${pref} input[type="text"]`);
+                inputs.forEach((input, index) => {
+                    input.placeholder = `Opción ${index + 1}`;
+                });
+            }
+        }
+        
+        // Agregar eventos a los botones existentes al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Botones para agregar opciones
+            document.querySelectorAll('.add-option').forEach(button => {
+                button.addEventListener('click', function() {
+                    const pref = this.dataset.pref;
+                    addOption(pref);
+                });
+            });
+            
+            // Botones para eliminar opciones
+            document.querySelectorAll('.remove-option').forEach(button => {
+                button.addEventListener('click', function() {
+                    removeOption(this);
+                });
+            });
+            
+            // Validar opciones al enviar el formulario
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    let isValid = true;
+                    
+                    // Validar que al menos una opción tenga un título
+                    const hasTitle = ['uno', 'dos', 'tres'].some(pref => {
+                        const title = document.getElementById(`preferencia_${pref}`)?.value.trim();
+                        return title && title.length > 0;
+                    });
+                    
+                    if (!hasTitle) {
+                        // Si no hay títulos, no es necesario validar las opciones
+                        return true;
+                    }
+                    
+                    // Validar cada preferencia
+                    ['uno', 'dos', 'tres'].forEach(pref => {
+                        const title = document.getElementById(`preferencia_${pref}`)?.value.trim();
+                        const container = document.getElementById(`opciones-container-${pref}`);
+                        
+                        if (title && title.length > 0 && container) {
+                            const inputs = container.querySelectorAll('input[type="text"]');
+                            const hasOptions = Array.from(inputs).some(input => input.value.trim() !== '');
+                            
+                            if (!hasOptions) {
+                                alert(`La preferencia "${title}" debe tener al menos una opción.`);
+                                isValid = false;
+                                e.preventDefault();
+                                return false;
+                            }
+                        }
+                        return true;
+                    });
+                    
+                    return isValid;
+                });
+            }
         });
     </script>
 @endpush

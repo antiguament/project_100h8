@@ -41,12 +41,16 @@
                 <div class="category-card">
                     <button class="category-btn" onclick="window.location.href='{{ route('categoria.productos', $category->id) }}'">
                         <div class="category-icon">
-                            @php
-                                // Diferentes iconos según el índice para variedad
-                                $icons = ['fa-box', 'fa-tshirt', 'fa-laptop', 'fa-headphones', 'fa-home', 'fa-book', 'fa-futbol', 'fa-couch'];
-                                $icon = $icons[$loop->index % count($icons)] ?? 'fa-box';
-                            @endphp
-                            <i class="fas {{ $icon }}"></i>
+                            @if($category->image)
+                                <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" class="category-image">
+                            @else
+                                @php
+                                    // Diferentes iconos según el índice para variedad
+                                    $icons = ['fa-box', 'fa-tshirt', 'fa-laptop', 'fa-headphones', 'fa-home', 'fa-book', 'fa-futbol', 'fa-couch'];
+                                    $icon = $icons[$loop->index % count($icons)] ?? 'fa-box';
+                                @endphp
+                                <i class="fas {{ $icon }}"></i>
+                            @endif
                         </div>
                         <h3 class="category-title">{{ $category->name }}</h3>
                         @if($category->description)
@@ -254,23 +258,35 @@
     }
 
     .category-icon {
-        width: 70px;
-        height: 70px;
-        background: rgba(230, 57, 70, 0.1);
+        width: 120px;
+        height: 120px;
+        background-color: #f8f9fa;
         border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 1.5rem;
+        margin: 0 auto 20px;
         color: var(--color-primary);
-        font-size: 1.8rem;
+        font-size: 36px;
+        overflow: hidden;
+        border: 1px solid #e9ecef;
         transition: all 0.3s ease;
+    }
+    
+    .category-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .category-btn:hover .category-icon {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
     }
 
     .category-card:hover .category-icon {
         background: var(--gradient-primary);
         color: white;
-        transform: rotate(5deg);
     }
 
     .category-title {

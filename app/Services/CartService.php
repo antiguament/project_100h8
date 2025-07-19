@@ -49,21 +49,42 @@ class CartService
      * @param int $quantity
      * @param string $image
      * @param int $stock
+     * @param string|null $preferences JSON con las preferencias del producto
      * @return void
      */
-    public function add($id, $name, $price, $quantity, $image, $stock)
+    public function add($id, $name, $price, $quantity, $image, $stock, $preferences = null)
     {
         $cart = $this->content();
         
-        if (isset($cart[$id])) {
-            $cart[$id]['quantity'] += $quantity;
-        } else {
-            $cart[$id] = [
+        // Crear un ID único basado en el ID del producto y sus preferencias
+        $uniqueId = $id;
+        if ($preferences) {
+            $uniqueId .= '_' . md5($preferences);
+        }
+        
+        // Verificar si ya existe un producto idéntico (mismo ID y preferencias)
+        $found = false;
+        foreach ($cart as $key => $item) {
+            if (str_starts_with($key, $id . '_') && isset($item['preferences']) && $item['preferences'] === $preferences) {
+                $cart[$key]['quantity'] += $quantity;
+                $found = true;
+                break;
+            } elseif ($key == $id && !isset($item['preferences']) && $preferences === null) {
+                $cart[$key]['quantity'] += $quantity;
+                $found = true;
+                break;
+            }
+        }
+        
+        if (!$found) {
+            $cart[$uniqueId] = [
+                'id' => $id, // ID original del producto
                 'name' => $name,
                 'price' => $price,
                 'quantity' => $quantity,
-                'image_url' => $image,  // Cambiado de 'image' a 'image_url'
-                'stock' => $stock
+                'image_url' => $image,
+                'stock' => $stock,
+                'preferences' => $preferences ? json_decode($preferences, true) : null
             ];
         }
         

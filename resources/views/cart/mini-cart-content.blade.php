@@ -23,7 +23,29 @@
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
-                        <p class="text-muted mb-2">${{ number_format($item['price'], 2) }} c/u</p>
+                        <p class="text-muted mb-1">${{ number_format($item['price'], 0, ',', '.') }} c/u</p>
+                        
+                        <!-- Mostrar preferencias si existen -->
+                        @if(!empty($item['preferences']))
+                            <div class="mb-2">
+                                @foreach($item['preferences'] as $key => $value)
+                                    @if(!empty($value))
+                                        <div class="preference-item">
+                                            <small class="text-muted">
+                                                {{ ucfirst(str_replace('_', ' ', $key)) }}: 
+                                                <span class="text-dark fw-bold">
+                                                    @if(is_array($value))
+                                                        {{ implode(', ', $value) }}
+                                                    @else
+                                                        {{ $value }}
+                                                    @endif
+                                                </span>
+                                            </small>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @endif
                         
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="cart-item-quantity">
