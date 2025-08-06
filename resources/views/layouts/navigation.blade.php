@@ -23,6 +23,12 @@
                     <x-nav-link :href="route('admin.pages.index')" :active="request()->routeIs('admin.pages.*')">
                         <i class="fas fa-file-alt mr-1"></i> Páginas
                     </x-nav-link>
+                    
+                    @if(auth()->user()->hasRole('admin'))
+                    <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                        <i class="fas fa-users mr-1"></i> Usuarios
+                    </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -86,6 +92,12 @@
             <x-responsive-nav-link :href="route('admin.pages.index')" :active="request()->routeIs('admin.pages.*')">
                 <i class="fas fa-file-alt mr-1"></i> Páginas
             </x-responsive-nav-link>
+            
+            @if(auth()->user()->hasRole('admin'))
+            <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                <i class="fas fa-users mr-1"></i> Usuarios
+            </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

@@ -316,37 +316,100 @@ return [
             'text' => 'Buscar',
         ],
         
-        // Menú de Catálogo
+        // Menú de Inicio (visible para todos los usuarios autenticados)
         [
-            'text' => 'Catálogo',
-            'icon' => 'fas fa-fw fa-store',
+            'text' => 'Inicio',
+            'url' => '/admin/dashboard',
+            'icon' => 'fas fa-fw fa-home',
+            'active' => ['admin/dashboard'],
+        ], 
+
+       
+        
+       
+
+        // Menú de Administración (solo para administradores)
+
+
+        [
+            'text' => 'ADMINISTRACION',
+            'icon' => 'fas fa-fw fa-cogs',
+            'role' => 'admin',
             'submenu' => [
                 [
-                    'text' => 'Categorías',
+                    'text' => 'Categorias',
                     'url' => '/admin/categories',
                     'icon' => 'fas fa-fw fa-tags',
-                    'active' => ['admin/categories*'],
+                    'role' => 'admin',
                 ],
                 [
                     'text' => 'Productos',
                     'url' => '/admin/products',
                     'icon' => 'fas fa-fw fa-box',
                     'active' => ['admin/products*'],
+                    'role' => 'admin',
                 ],
                 [
                     'text' => 'Páginas',
                     'url' => '/admin/pages',
                     'icon' => 'fas fa-fw fa-file-alt',
                     'active' => ['admin/pages*'],
+                    'role' => 'admin',
+                ],
+                [
+                    'text' => 'Usuarios',
+                    'url' => '/admin/users',
+                    'icon' => 'fas fa-fw fa-users',
+                    'active' => ['admin/users*'],
+                    'role' => 'admin',
                 ],
             ],
         ],
+        
 
 
 
 
 
 
+        
+
+
+
+
+
+
+
+
+
+
+
+        
+        // Menú de Usuario (visible para todos los usuarios autenticados)
+        [
+            'text' => 'Mi Cuenta',
+            'icon' => 'fas fa-fw fa-user',
+            'submenu' => [
+                [
+                    'text' => 'Perfil',
+                    'url' => '/profile',
+                    'icon' => 'fas fa-fw fa-user-edit',
+                ],
+                [
+                    'text' => 'Configuración',
+                    'url' => '#',
+                    'icon' => 'fas fa-fw fa-cog',
+                ],
+            ],
+        ],
+        
+        // Menú de la Tienda (visible para todos los usuarios autenticados)
+        [
+            'text' => 'Tienda',
+            'url' => '/vista-1',
+            'icon' => 'fas fa-fw fa-shopping-cart',
+            'active' => ['vista-1*'],
+        ],
     ],
 
     /*
@@ -369,6 +432,7 @@ return [
         JeroenNoten\LaravelAdminLte\Menu\Filters\ClassesFilter::class,
         JeroenNoten\LaravelAdminLte\Menu\Filters\LangFilter::class,
         JeroenNoten\LaravelAdminLte\Menu\Filters\DataFilter::class,
+        App\Filters\MenuFilter::class,
     ],
 
     /*

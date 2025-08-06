@@ -6,11 +6,41 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
+    
+    /**
+     * The roles that belong to the user.
+     */
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class);
+    }
+    
+    /**
+     * Check if the user has a specific role.
+     *
+     * @param string $roleName
+     * @return bool
+     */
+    public function hasRole($roleName): bool
+    {
+        return $this->roles()->where('name', $roleName)->exists();
+    }
+    
+    /**
+     * Check if the user has any of the given roles.
+     *
+     * @param array $roles
+     * @return bool
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        return $this->roles()->whereIn('name', $roles)->exists();
+    }
 
     /**
      * The attributes that are mass assignable.

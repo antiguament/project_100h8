@@ -228,9 +228,60 @@
         
         .cta-buttons {
             display: flex;
-            gap: 1rem;
+            gap: 1.5rem;
             justify-content: center;
             flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+        
+        .btn-shop-now {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+            color: white !important;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(230, 57, 70, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .btn-shop-now::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
+            transition: all 0.6s ease;
+            z-index: -1;
+        }
+        
+        .btn-shop-now:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 20px rgba(230, 57, 70, 0.4);
+        }
+        
+        .btn-shop-now:hover::before {
+            left: 0;
+        }
+        
+        .btn-shop-now i {
+            transition: transform 0.3s ease;
+        }
+        
+        .btn-shop-now:hover i {
+            transform: translateX(5px);
         }
         
         /* Features Section */
@@ -846,6 +897,11 @@
                 <h1>{!! nl2br(e($page->hero_title ?? 'Sabores que inspiran,<br><span>momentos que perduran</span>')) !!}</h1>
                 <p>{{ $page->hero_subtitle ?? 'Una experiencia gastronómica única que combina tradición e innovación en cada plato. Entregamos a domicilio en San Carlos, Antioquia.' }}</p>
                 <div class="cta-buttons">
+                    <!-- Botón destacado de Ir a la Tienda -->
+                    <a href="{{ route('vista-1') }}" class="btn btn-shop-now">
+                        <i class="fas fa-shopping-cart"></i> Ir a la Tienda
+                    </a>
+                    
                     @if(isset($page->cta_buttons))
                         @foreach($page->cta_buttons as $button)
                             <a href="{{ $button['url'] ?? '#' }}" class="btn {{ $button['type'] ?? 'btn-primary' }}">

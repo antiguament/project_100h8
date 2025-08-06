@@ -13,20 +13,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Crear usuario administrador
-        User::factory()->create([
-            'name' => 'Administrador',
-            'email' => 'admin@example.com',
-            'password' => bcrypt('password'),
-            'is_admin' => true,
-            'email_verified_at' => now(),
-        ]);
-
-        // Ejecutar los seeders
+        // Ejecutar los seeders en orden
         $this->call([
-            CategorySeeder::class,
-            ProductSeeder::class,
-            PageSeeder::class,
+            RolesTableSeeder::class,  // Primero creamos los roles
+            CategorySeeder::class,    // Luego las categorías
+            ProductSeeder::class,     // Después los productos
+            PageSeeder::class,        // Y finalmente las páginas
         ]);
     }
 }
