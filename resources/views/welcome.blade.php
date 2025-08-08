@@ -891,7 +891,7 @@
                 @endif
             </nav>
         </header>
-        <img src="{{ $page->hero_image_url }}" alt="{{ $page->title }}" class="img-thumbnail" style="max-width: 200px;">
+
         <section class="hero" style="{{ !empty($page->hero_image) ? 'background-image: url(' . asset('storage/' . $page->hero_image) . ');' : '' }}">
             <div class="hero-content">
                 <h1>{!! nl2br(e($page->hero_title ?? 'Sabores que inspiran,<br><span>momentos que perduran</span>')) !!}</h1>
@@ -909,7 +909,7 @@
                             </a>
                         @endforeach
                     @else
-                        <a href="{{ route('vista-1') }}" class="btn btn-primary">Ver Menú</a>
+                       
                         <a href="#contacto" class="btn btn-secondary">Hacer Pedido</a>
                     @endif
                 </div>
