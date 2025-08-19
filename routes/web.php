@@ -33,8 +33,11 @@ Route::controller(CartController::class)->group(function () {
 Route::controller(PublicCategoryController::class)->group(function () {
     Route::get('/vista-1', 'index')->name('vista-1');
     Route::get('/categoria/{categoryId}/productos', 'showProducts')->name('categoria.productos');
-    Route::get('/producto/{productId}', 'showProduct')->name('producto.detalle');
+    Route::get('/categoria/{category:slug}', 'show')->name('category.show');
 });
+
+// Product routes - Using route model binding with slug
+Route::get('/producto/{product:slug}', [App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
 
 // Ruta para servir imágenes de productos
 Route::get('/images/products/{filename}', function ($filename) {
@@ -233,7 +236,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-
+// Ruta de contacto
 Route::get('/contacto', function () {
     return view('contact');
 })->name('contact');
+
+// Route for AJAX product filtering
+Route::get('/filter-products', [App\Http\Controllers\HomeController::class, 'filterProducts'])->name('products.filter');

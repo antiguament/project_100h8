@@ -3,17 +3,38 @@
 namespace App\Http\Controllers;
 
 use App\Models\Page;
+use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
             // Obtener la página de inicio
             $page = $this->getHomePage();
+            
+            // Obtener categorías activas ordenadas por nombre
+            $categories = Category::where('is_active', true)
+                ->orderBy('name')
+                ->get();
+            
+            // Obtener el ID de la categoría seleccionada (si existe)
+            $selectedCategoryId = $request->query('category_id');
+            
+            // Obtener productos activos (filtrados por categoría si se seleccionó una)
+            $productsQuery = Product::where('is_active', true);
+            
+            if ($selectedCategoryId) {
+                $productsQuery->where('category_id', $selectedCategoryId);
+            }
+            
+            $products = $productsQuery->with('category')
+                ->orderBy('name')
+                ->get();
             
             // Si no se encontró la página, redirigir con un mensaje de error
             if (!$page) {
@@ -26,8 +47,8 @@ class HomeController extends Controller
             // Registrar datos para depuración
             $this->logPageData($page);
             
-            // Retornar la vista con los datos de la página
-            return view('welcome', compact('page'));
+            // Retornar la vista con los datos de la página, categorías y productos
+            return view('welcome', compact('page', 'categories', 'products', 'selectedCategoryId'));
             
         } catch (\Exception $e) {
             Log::error('Error al cargar la página de inicio: ' . $e->getMessage(), [
@@ -39,6 +60,56 @@ class HomeController extends Controller
             return response()->view('errors.custom', [
                 'message' => 'Error al cargar la página de inicio',
                 'error' => config('app.debug') ? $e->getMessage() : 'Por favor, intente nuevamente más tarde.'
+            ], 500);
+        }
+    }
+    
+    /**
+     * Filter products by category for AJAX requests
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function filterProducts(Request $request)
+    {
+        try {
+            // Get the category ID from the request
+            $categoryId = $request->query('category_id');
+            
+            // Query products based on category filter
+            $productsQuery = Product::where('is_active', true)
+                ->with('category');
+                
+            if ($categoryId) {
+                $productsQuery->where('category_id', $categoryId);
+            }
+            
+            // Get the filtered products
+            $products = $productsQuery->orderBy('name')
+                ->get()
+                ->map(function($product) {
+                    return [
+                        'id' => $product->id,
+                        'name' => $product->name,
+                        'description' => $product->description,
+                        'price' => $product->price,
+                        'image_url' => $product->image_url,
+                        'is_new' => $product->is_new,
+                        'category' => $product->category ? $product->category->name : null,
+                    ];
+                });
+            
+            return response()->json([
+                'success' => true,
+                'products' => $products
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error filtering products: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cargar los productos. Por favor, inténtalo de nuevo.'
             ], 500);
         }
     }

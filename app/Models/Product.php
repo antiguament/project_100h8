@@ -48,12 +48,6 @@ class Product extends Model
         'opciones_preferencia_uno' => 'array',
         'opciones_preferencia_dos' => 'array',
         'opciones_preferencia_tres' => 'array',
-        'max_selecciones_uno' => 'integer',
-        'max_selecciones_dos' => 'integer',
-        'max_selecciones_tres' => 'integer',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
     ];
 
     /**
