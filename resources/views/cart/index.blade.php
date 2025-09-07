@@ -2,61 +2,67 @@
 
 @section('title', 'Carrito de Compras | ' . config('app.name'))
 
-@php
-    use App\Facades\Cart;
-    $cart = Cart::content();
-    $total = Cart::total();
-    $itemCount = is_array($cart) ? count($cart) : 0;
-@endphp
-
 @push('styles')
-
 <style>
     /* Estilos generales */
-    body {
-        background-color: #f8f9fa;
-        padding-top: 2rem;
-    }
-    
     .cart-container {
         background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
-        padding: 2rem;
-        margin-top: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.05);
+        padding: 2.5rem;
+        margin: 2rem 0;
     }
     
     .cart-header {
         border-bottom: 2px solid #f1f1f1;
-        padding-bottom: 1rem;
+        padding-bottom: 1.25rem;
         margin-bottom: 2rem;
     }
     
     .cart-header h1 {
         font-weight: 700;
         color: #2c3e50;
+        font-size: 1.8rem;
     }
     
     .cart-item {
         display: flex;
-        padding: 1.5rem 0;
-        border-bottom: 1px solid #f1f1f1;
+        padding: 1.5rem;
+        border-radius: 10px;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        margin-bottom: 1.25rem;
+        transition: transform 0.2s, box-shadow 0.2s;
     }
     
-    .cart-item:last-child {
-        border-bottom: none;
+    .cart-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+    
+    .product-image-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        flex-shrink: 0;
+        margin-right: 1.5rem;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #f8f9fa;
     }
     
     .product-image {
-        width: 120px;
-        height: 120px;
+        width: 100%;
+        height: 100%;
         object-fit: cover;
-        border-radius: 8px;
-        margin-right: 1.5rem;
+        transition: transform 0.3s;
     }
     
     .product-details {
         flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
     
     .product-title {
@@ -64,490 +70,344 @@
         font-weight: 600;
         color: #2c3e50;
         margin-bottom: 0.5rem;
+        line-height: 1.4;
     }
     
     .product-price {
         font-weight: 700;
         color: #2c3e50;
         font-size: 1.2rem;
+        margin: 0.5rem 0;
     }
     
     .quantity-selector {
         display: flex;
         align-items: center;
-        margin: 0.5rem 0;
+        margin: 0.75rem 0;
     }
     
     .quantity-btn {
-        width: 32px;
-        height: 32px;
-        border: 1px solid #dee2e6;
+        width: 34px;
+        height: 34px;
+        border: 1px solid #e0e0e0;
         background: #fff;
+        color: #2c3e50;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         font-size: 1rem;
         transition: all 0.2s;
+        border-radius: 6px;
     }
     
     .quantity-btn:hover {
         background: #f8f9fa;
+        border-color: #cbd5e0;
     }
     
     .quantity-input {
         width: 50px;
         text-align: center;
-        border: 1px solid #dee2e6;
+        border: 1px solid #e0e0e0;
         border-left: none;
         border-right: none;
-        height: 32px;
+        height: 34px;
         -moz-appearance: textfield;
-    }
-    
-    .quantity-input::-webkit-outer-spin-button,
-    .quantity-input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
+        font-weight: 500;
     }
     
     .remove-item {
-        color: #dc3545;
+        color: #e74c3c;
         background: none;
         border: none;
-        padding: 0;
+        padding: 0.25rem 0.5rem;
         font-size: 0.9rem;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
+        border-radius: 4px;
+        transition: all 0.2s;
         margin-top: 0.5rem;
     }
     
-    .remove-item i {
-        margin-right: 0.3rem;
+    .remove-item:hover {
+        background: #fef2f2;
     }
     
     .summary-card {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 1.5rem;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.03);
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 1.75rem;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        position: sticky;
+        top: 2rem;
     }
     
     .summary-title {
-        font-size: 1.2rem;
-        font-weight: 600;
+        font-size: 1.3rem;
+        font-weight: 700;
         margin-bottom: 1.5rem;
         color: #2c3e50;
-        border-bottom: 1px solid #e9ecef;
         padding-bottom: 1rem;
+        border-bottom: 1px solid #edf2f7;
     }
     
     .summary-row {
         display: flex;
         justify-content: space-between;
         margin-bottom: 0.75rem;
+        font-size: 1rem;
+        color: #4a5568;
     }
     
     .summary-total {
         font-weight: 700;
-        font-size: 1.2rem;
+        font-size: 1.25rem;
         color: #2c3e50;
-        border-top: 1px solid #e9ecef;
+        border-top: 1px solid #edf2f7;
         padding-top: 1rem;
-        margin-top: 1rem;
+        margin: 1.5rem 0 1rem;
     }
     
     .btn-checkout {
-        background: #28a745;
+        background: #4CAF50;
         color: white;
         font-weight: 600;
-        padding: 0.75rem 1.5rem;
-        border-radius: 6px;
+        padding: 0.9rem 1.5rem;
+        border-radius: 8px;
         width: 100%;
-        margin-top: 1.5rem;
+        margin: 1.5rem 0 1rem;
         transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 0.95rem;
+        border: none;
     }
     
     .btn-checkout:hover {
-        background: #218838;
+        background: #43a047;
         transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
     }
     
     .btn-continue-shopping {
-        color: #6c757d;
+        color: #4a5568;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
-        margin-top: 1.5rem;
+        font-weight: 500;
+        transition: color 0.2s;
     }
     
-    .btn-continue-shopping i {
-        margin-right: 0.5rem;
+    .btn-continue-shopping:hover {
+        color: #2c3e50;
+        text-decoration: underline;
     }
     
     .empty-cart {
         text-align: center;
-        padding: 3rem 0;
+        padding: 4rem 2rem;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
     
     .empty-cart i {
-        font-size: 4rem;
-        color: #dee2e6;
+        font-size: 4.5rem;
+        color: #e2e8f0;
         margin-bottom: 1.5rem;
     }
     
     .empty-cart h3 {
-        color: #6c757d;
-        margin-bottom: 1.5rem;
+        color: #4a5568;
+        margin-bottom: 1.25rem;
         font-size: 1.5rem;
+        font-weight: 600;
     }
     
     .empty-cart p {
-        color: #6c757d;
-        margin-bottom: 1.5rem;
-        font-size: 1.1rem;
-    }
-    
-    .btn-empty-cart {
-        background-color: #007bff;
-        color: white;
-        padding: 0.75rem 1.5rem;
-        border-radius: 6px;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        transition: all 0.3s;
-    }
-    
-    .btn-empty-cart:hover {
-        background-color: #0056b3;
-        transform: translateY(-2px);
-        color: white;
-    }
-    
-    .btn-empty-cart i {
-        margin-right: 0.5rem;
-    }
-    
-    .cart-container {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-    
-    .cart-header {
-        background: linear-gradient(135deg, #6B46C1 0%, #805AD5 100%);
-        color: white;
-        padding: 1.5rem;
-        border-radius: 10px;
+        color: #718096;
         margin-bottom: 2rem;
-        box-shadow: 0 4px 20px rgba(107, 70, 193, 0.2);
+        font-size: 1.05rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
     }
     
-    .cart-item {
-        background: white;
-        border-radius: 10px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    
-    .cart-item:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        background-color: #f9f9f9;
-    }
-    /* Estilos para el resumen del pedido */
-    .summary-card {
-        background: #ffffff;
-        border-radius: 10px;
-        padding: 1.5rem;
-        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-        position: sticky;
-        top: 20px;
-    }
-    
-    .summary-title {
-        color: #2D3748;
-        font-weight: 700;
-        font-size: 1.25rem;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid #E2E8F0;
-    }
-    
-    .summary-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 0.75rem;
-        color: #4A5568;
-    }
-    
-    .summary-total {
-        font-weight: 700;
-        font-size: 1.1rem;
-        color: #2D3748;
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid #E2E8F0;
-    }
-    
-    /* Estilos para los botones */
-    .btn-checkout {
-        background: linear-gradient(135deg, #48BB78 0%, #38A169 100%);
-        border: none;
-        padding: 12px 25px;
+    .btn-outline-primary {
+        border: 2px solid #4CAF50;
+        color: #4CAF50;
         font-weight: 600;
-        letter-spacing: 0.5px;
-        transition: all 0.3s;
-        width: 100%;
-        margin-top: 1.5rem;
+        padding: 0.7rem 1.5rem;
         border-radius: 8px;
-        color: white;
-        text-transform: uppercase;
-        font-size: 0.9rem;
-    }
-    
-    .btn-checkout:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
-    }
-    
-    .btn-clear-cart {
-        background: #FED7D7;
-        color: #C53030;
-        border: none;
-        padding: 10px 20px;
-        font-weight: 600;
-        border-radius: 6px;
-        margin-top: 1rem;
-        width: 100%;
         transition: all 0.3s;
     }
     
-    .btn-clear-cart:hover {
-        background: #FEB2B2;
+    .btn-outline-primary:hover {
+        background: #4CAF50;
+        color: white;
+        transform: translateY(-2px);
     }
-    .empty-cart {
-        text-align: center;
-        padding: 4rem 0;
+    
+    .product-meta {
+        color: #718096;
+        font-size: 0.9rem;
+        margin: 0.25rem 0;
     }
-    .empty-cart i {
-        font-size: 5rem;
-        color: #e2e8f0;
-        margin-bottom: 1.5rem;
+    
+    .product-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 0.75rem;
     }
-    .remove-item {
-        color: #e53e3e;
-        cursor: pointer;
-        transition: color 0.2s;
-    }
-    .remove-item:hover {
-        color: #c53030;
+    
+    @media (max-width: 768px) {
+        .cart-container {
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .cart-item {
+            flex-direction: column;
+            padding: 1.25rem;
+        }
+        
+        .product-image-container {
+            width: 100%;
+            height: 200px;
+            margin: 0 0 1rem 0;
+        }
+        
+        .product-details {
+            width: 100%;
+        }
+        
+        .summary-card {
+            margin-top: 2rem;
+        }
     }
 </style>
 @endpush
 
 @section('content')
-<div class="container py-5">
+<div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-12">
             <div class="cart-container">
-                <div class="cart-header d-flex justify-content-between align-items-center">
-                    <h1 class="m-0"><i class="fas fa-shopping-cart me-2"></i>Mi Carrito</h1>
-                    @if($itemCount > 0)
-                    <span class="badge bg-primary rounded-pill">{{ $itemCount }} {{ $itemCount === 1 ? 'producto' : 'productos' }}</span>
+                <div class="cart-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h1 class="m-0"><i class="fas fa-shopping-cart me-2"></i>Mi Carrito</h1>
+                        @if(count((array)$cart) > 0)
+                        <span class="badge bg-primary rounded-pill px-3 py-2" style="font-size: 0.9rem;">
+                            {{ count((array)$cart) }} {{ count((array)$cart) === 1 ? 'producto' : 'productos' }}
+                        </span>
+                        @endif
+                    </div>
+                    @if(count((array)$cart) > 0)
+                    <p class="text-muted mb-0 mt-2">Revisa los productos en tu carrito</p>
                     @endif
                 </div>
-                
-                @if(!is_array($cart))
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        Hubo un problema al cargar el carrito. Por favor, recarga la página o contacta con soporte.
-                    </div>
-                @elseif($itemCount > 0)
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
-                
-                @if(session('error'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        {{ session('error') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                @endif
-                
-                @if($itemCount > 0 && is_array($cart))
+
+                @if(count((array)$cart) > 0)
                     <div class="row">
                         <!-- Lista de productos -->
                         <div class="col-lg-8">
                             @foreach($cart as $id => $item)
                                 <div class="cart-item" id="cart-item-{{ $id }}">
-                                    @if(isset($item['image_url']) && $item['image_url'])
-                                        <img src="{{ asset($item['image_url']) }}" alt="{{ $item['name'] }}" class="product-image">
-                                    @else
-                                        <div class="product-image bg-light d-flex align-items-center justify-content-center">
-                                            <i class="fas fa-image text-muted" style="font-size: 2rem;"></i>
-                                        </div>
-                                    @endif
-                                    <div class="product-details flex-grow-1">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <h5 class="product-title mb-1">{{ $item['name'] }}</h5>
-                                                <p class="product-price mb-2">${{ number_format($item['price'], 0, ',', '.') }}</p>
-                                                
-                                                <!-- Mostrar preferencias si existen -->
-                                                @if(!empty($item['preferences']))
-                                                    <div class="product-preferences mt-2">
-                                                        @foreach($item['preferences'] as $key => $value)
-                                                            @if(!empty($value))
-                                                                <div class="preference-item">
-                                                                    <small class="text-muted">
-                                                                        {{ ucfirst(str_replace('_', ' ', $key)) }}: 
-                                                                        <span class="text-dark fw-bold">
-                                                                            @if(is_array($value))
-                                                                                {{ implode(', ', $value) }}
-                                                                            @else
-                                                                                {{ $value }}
-                                                                            @endif
-                                                                        </span>
-                                                                    </small>
-                                                                </div>
-                                                            @endif
-                                                        @endforeach
-                                                    </div>
-                                                @endif
+                                    <div class="product-image-container">
+                                        @if(isset($item['image_url']) && $item['image_url'])
+                                            <img src="{{ asset($item['image_url']) }}" alt="{{ $item['name'] }}" class="product-image">
+                                        @else
+                                            <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+                                                <i class="fas fa-image text-muted" style="font-size: 2rem;"></i>
                                             </div>
-                                            <div class="d-flex align-items-center">
-                                                <div class="quantity-selector me-3">
-                                                    <button class="btn btn-sm btn-outline-secondary quantity-btn minus" data-id="{{ $id }}">-</button>
-                                                    <input type="number" class="form-control form-control-sm text-center quantity-input" 
-                                                           value="{{ $item['quantity'] }}" min="1" max="{{ $item['stock'] ?? 100 }}" 
-                                                           data-id="{{ $id }}" style="width: 50px;">
-                                                    <button class="btn btn-sm btn-outline-secondary quantity-btn plus" data-id="{{ $id }}">+</button>
-                                                </div>
-                                                <button class="btn btn-sm btn-outline-danger remove-from-cart" data-id="{{ $id }}">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
+                                        @endif
+                                    </div>
+                                    
+                                    <div class="product-details">
+                                        <div>
+                                            <h3 class="product-title">{{ $item['name'] }}</h3>
+                                            @if(isset($item['description']) && $item['description'])
+                                                <p class="product-meta">{{ Str::limit($item['description'], 100) }}</p>
+                                            @endif
+                                            <p class="product-price mb-0">${{ number_format($item['price'], 2, ',', '.') }}</p>
                                         </div>
-                                        <div class="d-flex justify-content-between align-items-center mt-2">
-                                            <p class="mb-0 text-muted">
-                                                Stock: {{ $item['stock'] ?? 'No disponible' }}
-                                            </p>
-                                            <p class="mb-0 fw-bold">
-                                                ${{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }}
-                                            </p>
+                                        
+                                        <div class="product-actions">
+                                            <div class="quantity-selector">
+                                                <button class="quantity-btn minus" data-id="{{ $id }}">-</button>
+                                                <input type="number" 
+                                                       class="quantity-input" 
+                                                       value="{{ $item['quantity'] }}" 
+                                                       min="1" 
+                                                       max="{{ $item['max_quantity'] ?? 100 }}" 
+                                                       data-id="{{ $id }}" 
+                                                       data-price="{{ $item['price'] }}">
+                                                <button class="quantity-btn plus" data-id="{{ $id }}">+</button>
+                                            </div>
+                                            
+                                            <button class="remove-from-cart" data-id="{{ $id }}">
+                                                <i class="fas fa-trash-alt me-1"></i> Eliminar
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
                             @endforeach
                             
-                            <div class="d-grid gap-2">
-                             <!--   <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-credit-card me-2"></i> Proceder al pago
-                                </button> -->
-                                
-                                <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#whatsappModal">
-                                    <i class="fab fa-whatsapp me-2"></i> Enviar pedido por WhatsApp
-                                </button>
-                                
-                                <a href="{{ route('vista-1') }}" class="btn btn-outline-secondary">
+                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                <a href="{{ route('welcome') }}" class="btn-continue-shopping">
                                     <i class="fas fa-arrow-left me-2"></i> Seguir comprando
                                 </a>
+                                
+                                <button type="button" class="btn btn-outline-primary" id="update-cart">
+                                    <i class="fas fa-sync-alt me-2"></i> Actualizar carrito
+                                </button>
                             </div>
-                            
-                            <!-- Modal de WhatsApp -->
-                            <div class="modal fade" id="whatsappModal" tabindex="-1" aria-labelledby="whatsappModalLabel" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="whatsappModalLabel">Enviar pedido por WhatsApp</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <form id="whatsappForm">
-                                            @csrf
-                                            <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <label for="phone" class="form-label">Tu número de teléfono</label>
-                                                    <input type="tel" class="form-control" id="phone" name="phone" 
-                                                           placeholder="Ej: 3001234567" required>
-                                                    <div class="form-text">Necesitamos tu número para contactarte.</div>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label for="notes" class="form-label">Notas adicionales</label>
-                                                    <textarea class="form-control" id="notes" name="notes" 
-                                                              rows="3" placeholder="Especificaciones, dirección de entrega, etc."></textarea>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                <button type="submit" class="btn btn-success">
-                                                    <i class="fab fa-whatsapp me-2"></i> Enviar por WhatsApp
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="btn btn-outline-danger" id="clear-cart">
-                                <i class="fas fa-trash-alt me-2"></i>Vaciar Carrito
-                            </button>
                         </div>
                         
                         <!-- Resumen del pedido -->
-                        <div class="col-lg-4 mt-4 mt-lg-0">
+                        <div class="col-lg-4">
                             <div class="summary-card">
                                 <h3 class="summary-title">Resumen del Pedido</h3>
                                 
                                 <div class="summary-row">
-                                    <span>Subtotal ({{ $itemCount }} {{ $itemCount === 1 ? 'producto' : 'productos' }})</span>
-                                    <span>${{ number_format($total, 2) }}</span>
+                                    <span>Subtotal</span>
+                                    <span id="subtotal">${{ number_format($subtotal, 2, ',', '.') }}</span>
                                 </div>
                                 
                                 <div class="summary-row">
                                     <span>Envío</span>
-                                    <span class="text-success">Gratis</span>
+                                    <span id="shipping">${{ number_format($shipping ?? 0, 2, ',', '.') }}</span>
                                 </div>
                                 
                                 <div class="summary-row summary-total">
                                     <span>Total</span>
-                                    <span>${{ number_format($total, 2) }}</span>
+                                    <span id="total">${{ number_format(($subtotal ?? 0) + ($shipping ?? 0), 2, ',', '.') }}</span>
                                 </div>
                                 
-                                <a href="{{ route('cart.checkout') }}" class="btn btn-checkout" id="checkout-button">
-                                    <i class="fas fa-credit-card me-2"></i> Proceder al Pago
-                                </a>
+                                <button type="button" class="btn-checkout" id="checkout-button" onclick="window.location.href='{{ route('cart.checkout') }}'">
+                                    <i class="fas fa-credit-card me-2"></i> Proceder al pago
+                                </button>
                                 
                                 <div class="text-center mt-3">
-                                    <small class="text-muted">
-                                        <i class="fas fa-lock me-1"></i> Pago seguro con WhatsApp
-                                    </small>
+                                    <img src="{{ asset('images/payment-methods.png') }}" alt="Métodos de pago" class="img-fluid" style="max-width: 250px; opacity: 0.8;">
                                 </div>
                             </div>
                         </div>
                     </div>
                 @else
                     <!-- Carrito vacío -->
-                    <div class="empty-cart py-5 text-center">
-                        <i class="fas fa-shopping-cart fa-4x text-muted mb-4"></i>
+                    <div class="empty-cart">
+                        <i class="fas fa-shopping-cart"></i>
                         <h3>Tu carrito está vacío</h3>
-                        <p class="text-muted mb-4">Aún no has agregado productos a tu carrito</p>
-                        <a href="{{ route('vista-1') }}" class="btn btn-primary">
-                            <i class="fas fa-arrow-left me-2"></i> Seguir comprando
+                        <p>No has agregado ningún producto a tu carrito. Explora nuestros productos y encuentra algo que te guste.</p>
+                        <a href="{{ route('welcome') }}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-arrow-left me-2"></i> Volver a la tienda
                         </a>
                     </div>
-                    
-                    <!-- Depuración: Mostrar contenido del carrito -->
-                    @if(env('APP_DEBUG') && !empty($cart))
-                        <div class="mt-4 p-3 bg-light rounded">
-                            <h5 class="mb-3">Información de depuración:</h5>
-                            <pre class="bg-white p-3 rounded">{{ print_r($cart, true) }}</pre>
-                        </div>
-                    @endif
                 @endif
             </div>
         </div>
@@ -557,101 +417,52 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-@if(session('open_whatsapp_modal'))
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const whatsappModal = new bootstrap.Modal(document.getElementById('whatsappModal'));
-        whatsappModal.show();
-    });
-</script>
-@endif
-
 <script>
     $(document).ready(function() {
-        // Manejar el envío del formulario de WhatsApp
-        $('#whatsappForm').on('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = $(this).serialize();
-            const submitBtn = $(this).find('button[type="submit"]');
-            const originalBtnText = submitBtn.html();
-            
-            // Mostrar carga
-            submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Enviando...');
-            
-            // Enviar solicitud AJAX
+        // Función para actualizar el carrito
+        function updateCartItem(id, quantity) {
             $.ajax({
-                url: '{{ route("cart.send.whatsapp") }}',
-                method: 'POST',
-                data: formData,
+                url: '{{ route('cart.update') }}',
+                method: 'PATCH',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    id: id,
+                    quantity: quantity
+                },
                 success: function(response) {
                     if (response.success) {
-                        // Cerrar el modal
-                        $('#whatsappModal').modal('hide');
+                        // Actualizar la interfaz
+                        $('#cart-count').text(response.cart_count);
+                        $('#subtotal').text('$' + response.subtotal.toLocaleString('es-ES', {minimumFractionDigits: 2}));
+                        $('#total').text('$' + (response.subtotal + {{ $shipping ?? 0 }}).toLocaleString('es-ES', {minimumFractionDigits: 2}));
                         
-                        // Mostrar mensaje de éxito
-                        Swal.fire({
-                            icon: 'success',
-                            title: '¡Listo!',
-                            text: 'Serás redirigido a WhatsApp para confirmar tu pedido.',
-                            showConfirmButton: true,
-                            confirmButtonText: 'Abrir WhatsApp',
-                            showCancelButton: true,
-                            cancelButtonText: 'Cerrar'
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                window.open(response.redirect_url, '_blank');
-                            }
-                        });
+                        // Si la cantidad es 0, eliminar el elemento del DOM
+                        if (response.quantity === 0) {
+                            $('#cart-item-' + id).fadeOut(300, function() {
+                                $(this).remove();
+                                if ($('.cart-item').length === 0) {
+                                    location.reload();
+                                }
+                            });
+                        }
                         
-                        // Limpiar el formulario
-                        $('#whatsappForm')[0].reset();
-                    } else {
-                        Swal.fire('Error', response.message || 'Ocurrió un error al procesar tu solicitud', 'error');
+                        showAlert('success', '¡Actualizado!', 'El carrito se ha actualizado correctamente.');
                     }
                 },
                 error: function(xhr) {
-                    const errorMsg = xhr.responseJSON?.message || 'Error al conectar con el servidor';
-                    Swal.fire('Error', errorMsg, 'error');
-                },
-                complete: function() {
-                    submitBtn.prop('disabled', false).html(originalBtnText);
+                    showAlert('error', 'Error', 'No se pudo actualizar el carrito. Por favor, inténtalo de nuevo.');
+                    console.error(xhr.responseText);
                 }
             });
-        });
+        }
         
-        // Formatear número de teléfono mientras se escribe
-        $('#phone').on('input', function() {
-            let value = $(this).val().replace(/\D/g, '');
-            if (value.length > 10) {
-                value = value.substring(0, 10);
-            }
-            $(this).val(value);
-        });
-        
-        // Validar formulario antes de enviar
-        $('#whatsappForm').on('submit', function() {
-            const phone = $('#phone').val().replace(/\D/g, '');
-            if (phone.length < 10) {
-                Swal.fire('Error', 'Por favor ingresa un número de teléfono válido (mínimo 10 dígitos)', 'error');
-                return false;
-            }
-            return true;
-        });
-    });
-</script>
-
-<script></script>
-<script>
-    $(document).ready(function() {
         // Función para mostrar notificación
-        function showAlert(icon, title, text, position = 'top-end', timer = 3000) {
+        function showAlert(icon, title, text) {
             const Toast = Swal.mixin({
                 toast: true,
-                position: position,
+                position: 'top-end',
                 showConfirmButton: false,
-                timer: timer,
+                timer: 3000,
                 timerProgressBar: true,
                 didOpen: (toast) => {
                     toast.addEventListener('mouseenter', Swal.stopTimer);
@@ -666,70 +477,24 @@
             });
         }
         
-        // Función para actualizar el resumen del pedido
-        function updateOrderSummary(count, total) {
-            $('.cart-count').text(count);
-            $('.summary-row:first span:last').text('$' + parseFloat(total).toFixed(2));
-            $('.summary-total span:last').text('$' + parseFloat(total).toFixed(2));
+        // Manejar clic en botones de cantidad
+        $('.quantity-btn').click(function() {
+            var input = $(this).siblings('.quantity-input');
+            var currentVal = parseInt(input.val());
+            var max = parseInt(input.attr('max'));
             
-            // Actualizar el texto de la cantidad de productos
-            const itemText = count === 1 ? 'producto' : 'productos';
-            $('.summary-row:first span:first').text('Subtotal (' + count + ' ' + itemText + ')');
-            
-            // Actualizar el badge del carrito
-            const $badge = $('.cart-count-badge');
-            if (count > 0) {
-                $badge.text(count).removeClass('d-none');
-            } else {
-                $badge.addClass('d-none');
+            if ($(this).hasClass('plus') && currentVal < max) {
+                input.val(currentVal + 1).trigger('change');
+            } else if ($(this).hasClass('minus') && currentVal > 1) {
+                input.val(currentVal - 1).trigger('change');
             }
-        }
+        });
         
-        // Actualizar cantidad
-        $('.update-cart').on('change', function() {
+        // Actualizar carrito cuando cambia la cantidad
+        $('.quantity-input').on('change', function() {
             var id = $(this).data('id');
             var quantity = $(this).val();
-            var stock = $(this).attr('max');
-            var button = $(this);
-            
-            if (quantity > stock) {
-                showAlert('error', 'Error', 'La cantidad no puede ser mayor al stock disponible');
-                $(this).val(stock);
-                return false;
-            }
-            
-            if (quantity < 1) {
-                showAlert('error', 'Error', 'La cantidad debe ser al menos 1');
-                $(this).val(1);
-                return false;
-            }
-            
-            // Mostrar indicador de carga
-            button.prop('disabled', true);
-            
-            $.ajax({
-                url: '{{ route("cart.update") }}',
-                type: 'PATCH',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    id: id,
-                    quantity: quantity
-                },
-                success: function(response) {
-                    if (response.success) {
-                        // Actualizar la página para reflejar los cambios
-                        window.location.reload();
-                    } else {
-                        showAlert('error', 'Error', 'No se pudo actualizar la cantidad');
-                    }
-                },
-                error: function() {
-                    showAlert('error', 'Error', 'Ocurrió un error al actualizar el carrito');
-                },
-                complete: function() {
-                    button.prop('disabled', false);
-                }
-            });
+            updateCartItem(id, quantity);
         });
         
         // Eliminar producto del carrito
@@ -740,179 +505,45 @@
             
             Swal.fire({
                 title: '¿Estás seguro?',
-                text: '¿Deseas eliminar este producto del carrito?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Mostrar indicador de carga
-                    button.prop('disabled', true);
-                    button.html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Eliminando...');
-                    
-                    $.ajax({
-                        url: '{{ route("cart.remove") }}',
-                        type: 'DELETE',
-                        data: {
-                            _token: '{{ csrf_token() }}',
-                            id: id
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                showAlert('success', '¡Eliminado!', 'El producto ha sido eliminado del carrito');
-                                // Actualizar el contador del carrito
-                                $('.cart-count').text(response.cart_count);
-                                // Si el carrito queda vacío, recargar la página
-                                if (response.cart_count === 0) {
-                                    setTimeout(() => window.location.reload(), 1000);
-                                } else {
-                                    // Eliminar el elemento del DOM
-                                    button.closest('.cart-item').fadeOut(300, function() {
-                                        $(this).remove();
-                                        // Actualizar el resumen
-                                        updateOrderSummary(response.cart_count, response.total);
-                                    });
-                                }
-                            } else {
-                                showAlert('error', 'Error', 'No se pudo eliminar el producto');
-                            }
-                        },
-                        error: function() {
-                            showAlert('error', 'Error', 'Ocurrió un error al eliminar el producto');
-                        },
-                        complete: function() {
-                            button.prop('disabled', false).html('<i class="fas fa-trash"></i> Eliminar');
-                        }
-                    });
-                }
-            });
-        });
-        
-        // Botón de vaciar carrito
-        $('#clear-cart').click(function(e) {
-            e.preventDefault();
-            const $button = $(this);
-            const originalText = $button.html();
-            
-            Swal.fire({
-                title: '¿Estás seguro?',
-                text: 'Esta acción vaciará tu carrito de compras',
+                text: '¿Deseas eliminar este producto de tu carrito?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Sí, vaciar carrito',
-                cancelButtonText: 'Cancelar',
-                reverseButtons: true,
-                showLoaderOnConfirm: true,
-                preConfirm: () => {
-                    $button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Procesando...');
-                    
-                    return $.ajax({
-                        url: '{{ route("cart.clear") }}',
-                        type: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}'
-                        }
-                    }).fail(function() {
-                        Swal.showValidationMessage('Ocurrió un error al vaciar el carrito');
-                    });
-                },
-                allowOutsideClick: () => !Swal.isLoading()
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    showAlert('success', '¡Listo!', 'El carrito se ha vaciado correctamente');
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1500);
-                } else {
-                    $button.html(originalText).prop('disabled', false);
+                    updateCartItem(id, 0);
                 }
             });
         });
         
-        // Botones de incrementar/disminuir cantidad
-        $('.quantity-btn').click(function() {
-            var input = $(this).siblings('.quantity-input');
-            var currentVal = parseInt(input.val());
-            var max = parseInt(input.attr('max'));
-            
-            if ($(this).hasClass('plus') && currentVal < max) {
-                input.val(currentVal + 1).trigger('change');
-            } else if ($(this).hasClass('minus') && currentVal > 1) {
-                input.val(currentVal - 1).trigger('change');
-            } else if (currentVal >= max) {
-                showAlert('info', 'Stock máximo', 'No hay más unidades disponibles');
-            }
+        // Botón de actualizar carrito
+        $('#update-cart').click(function() {
+            $('.quantity-input').each(function() {
+                var id = $(this).data('id');
+                var quantity = $(this).val();
+                updateCartItem(id, quantity);
+            });
         });
         
-        // Función para actualizar el resumen del pedido
-        function updateOrderSummary(itemCount, total) {
-            $('.summary-row:first span:last').text('$' + parseFloat(total).toFixed(2));
-            $('.summary-total span:last').text('$' + parseFloat(total).toFixed(2));
-            $('.cart-count').text(itemCount);
-            
-            // Actualizar el texto de la cantidad de productos
-            var itemText = itemCount === 1 ? 'producto' : 'productos';
-            $('.summary-row:first span:first').text('Subtotal (' + itemCount + ' ' + itemText + ')');
-        }
-    });
-    
-    // Manejar el envío del formulario de WhatsApp
-    $('#whatsappForm').on('submit', function(e) {
-        e.preventDefault();
-        
-        const form = $(this);
-        const submitBtn = form.find('button[type="submit"]');
-        const originalBtnText = submitBtn.html();
-        
-        // Mostrar indicador de carga
-        submitBtn.prop('disabled', true);
-        submitBtn.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enviando...');
-        
-        // Enviar la solicitud AJAX
-        $.ajax({
-            url: '{{ route("cart.send.whatsapp") }}',
-            method: 'POST',
-            data: form.serialize(),
-            success: function(response) {
-                if (response.success) {
-                    // Cerrar el modal
-                    $('#whatsappModal').modal('hide');
-                    
-                    // Redirigir a WhatsApp
-                    window.location.href = response.redirect_url;
-                    
-                    // Limpiar el carrito después de un breve retraso
-                    setTimeout(function() {
-                        // Opcional: Limpiar el carrito después de enviar por WhatsApp
-                        // $.post('{{ route("cart.clear") }}', {
-                        //     _token: '{{ csrf_token() }}'
-                        // }, function() {
-                        //     // Recargar la página para actualizar el carrito
-                        //     window.location.reload();
-                        // });
-                    }, 1000);
-                } else {
-                    showAlert('error', 'Error', response.message || 'Ocurrió un error al procesar tu pedido');
+        // Botón de pago
+        $('#checkout-button').click(function() {
+            Swal.fire({
+                title: 'Redirigiendo al pago',
+                text: 'Estás siendo redirigido al proceso de pago seguro...',
+                icon: 'info',
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                    // Aquí iría la lógica de redirección al pago
+                    setTimeout(() => {
+                        window.location.href = '{{ route('cart.checkout') }}';
+                    }, 1500);
                 }
-            },
-            error: function(xhr) {
-                let errorMessage = 'Ocurrió un error al enviar el pedido';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                }
-                showAlert('error', 'Error', errorMessage);
-            },
-            complete: function() {
-                // Restaurar el botón
-                submitBtn.prop('disabled', false);
-                submitBtn.html(originalBtnText);
-            }
+            });
         });
     });
 </script>

@@ -23,7 +23,7 @@ class HomeController extends Controller
                 ->get();
             
             // Obtener el ID de la categoría seleccionada (si existe)
-            $selectedCategoryId = $request->query('category_id');
+            $selectedCategoryId = $request->query('category');
             
             // Obtener productos activos (filtrados por categoría si se seleccionó una)
             $productsQuery = Product::where('is_active', true);

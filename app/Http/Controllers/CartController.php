@@ -13,11 +13,16 @@ class CartController extends Controller
     {
         $cart = Cart::content();
         $total = Cart::total();
+        $itemCount = is_array($cart) ? count($cart) : 0;
         
         // Depuración
         \Log::info('Contenido del carrito en index:', ['cart' => $cart, 'total' => $total]);
         
-        return view('cart.index', compact('cart', 'total'));
+        return view('cart.index', [
+            'cart' => $cart,
+            'total' => $total,
+            'itemCount' => $itemCount
+        ]);
     }
 
     public function add(Request $request, $id)

@@ -310,7 +310,7 @@
             <!-- Hero Section -->
             <div class="hero">
                 <h1 class="text-2xl font-bold mb-2">¡Bienvenido a Allaletera!</h1>
-                <p class="text-gray-600 mb-6">Los mejores productos a tu alcance</p>
+                <p class="text-gray-600 mb-6">Los mejores productos a tu alcancea</p>
             </div>
             
             <!-- Categories -->
@@ -320,9 +320,10 @@
                         <a href="#" 
                            class="category-item {{ request('category') == $category->id ? 'active' : '' }}" 
                            data-category-id="{{ $category->id }}">
-                            <div class="category-icon">
-                                <i class="fas {{ $category->icon ?? 'fa-utensils' }}"></i>
-                            </div>
+                          
+                                <img class="category-icon" src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" class="category-image">
+                      
+                          
                             <span class="category-name">{{ $category->name }}</span>
                         </a>
                     @empty
@@ -335,52 +336,62 @@
             <div class="products-section">
                 <div class="section-header">
                     <h2 class="section-title">
-                        @if(request('category'))
-                            {{ $categories->firstWhere('id', request('category'))?->name ?? 'Productos' }}
+                        @if(!empty($selectedCategoryId) && $categories->contains('id', $selectedCategoryId))
+                            {{ $categories->firstWhere('id', $selectedCategoryId)->name }}
                         @else
                             Productos destacados
                         @endif
                     </h2>
-                    <a href="#" class="view-all">
+                    <a href="{{ route('welcome') }}" class="view-all">
                         Ver todo
                         <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
                 
                 <div class="food-grid" id="products-container">
-                    @forelse($products as $index => $product)
-                        <div class="food-card fade-in" style="animation-delay: {{ $index * 0.05 }}s;">
-                            @if($product->is_new)
-                                <span class="food-badge">NUEVO</span>
-                            @endif
-                            <a href="{{ route('products.show', $product) }}" class="block">
-                                <img src="{{ $product->image_url ?? 'https://via.placeholder.com/300x200' }}" 
-                                     alt="{{ $product->name }}" 
-                                     class="food-image"
-                                     onerror="this.src='https://via.placeholder.com/300x200?text=Imagen+no+disponible'">
-                            </a>
-                            <div class="food-details">
-                                <h3 class="food-name">{{ $product->name }}</h3>
-                                <p class="food-description">{{ $product->description ?? 'Delicioso plato preparado con los mejores ingredientes' }}</p>
-                                <div class="food-footer">
-                                    <span class="food-price">$ {{ number_format($product->price, 2) }}</span>
-                                    <div class="flex space-x-2">
-                                        <a href="{{ route('products.show', $product) }}" 
-                                           class="view-details-btn">
-                                            <i class="fas fa-eye mr-1"></i> Ver
-                                        </a>
-                                        <button class="add-to-cart" data-product-id="{{ $product->id }}">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
+                    @php
+                        // Asegurarse de que $products esté definida y sea iterable
+                        $products = $products ?? [];
+                        $products = is_iterable($products) ? $products : [];
+                    @endphp
+                    
+                    @if(count($products) > 0)
+                        @foreach($products as $index => $product)
+                            @if(isset($product) && is_object($product))
+                                <div class="food-card fade-in" style="animation-delay: {{ $index * 0.05 }}s;">
+                                    @if(property_exists($product, 'is_new') && $product->is_new)
+                                        <span class="food-badge">NUEVO</span>
+                                    @endif
+                                    <a href="{{ route('products.show', $product->slug ?? '') }}" class="block">
+                                        <img src="{{ $product->image_url ?? 'https://via.placeholder.com/300x200' }}" 
+                                             alt="{{ $product->name ?? 'Producto sin nombre' }}" 
+                                             class="food-image"
+                                             onerror="this.src='https://via.placeholder.com/300x200?text=Imagen+no+disponible'">
+                                    </a>
+                                    <div class="food-details">
+                                        <h3 class="food-name">{{ $product->name ?? 'Producto sin nombre' }}</h3>
+                                        <p class="food-description">{{ $product->description ?? 'Delicioso plato preparado con los mejores ingredientes' }}</p>
+                                        <div class="food-footer">
+                                            <span class="food-price">$ {{ isset($product->price) ? number_format($product->price, 0, ',', '.') : '0,00' }}</span>
+                                            <div class="flex space-x-2">
+                                                <a href="{{ route('products.show', $product->slug ?? '') }}" 
+                                                   class="view-details-btn">
+                                                    <i class="fas fa-eye mr-1"></i> Ver
+                                                </a>
+                                                <button class="add-to-cart" data-product-id="{{ $product->id ?? '' }}">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    @empty
+                            @endif
+                        @endforeach
+                    @else
                         <div class="col-span-2 text-center py-12">
-                            <p>No hay productos disponibles en esta categoría.</p>
+                            <p>No hay productos disponibles en este momento.</p>
                         </div>
-                    @endforelse
+                    @endif
                 </div>
             </div>
         </main>

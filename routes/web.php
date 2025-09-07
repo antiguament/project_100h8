@@ -166,7 +166,7 @@ Route::get('/welcome', [\App\Http\Controllers\WelcomeController::class, 'index']
 
 // Rutas protegidas por autenticación
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Redirigir dashboard a welcome para usuarios normales
+    // Dashboard principal
     Route::get('/dashboard', function () {
         if (auth()->user()->hasRole('admin')) {
             return redirect()->route('admin.dashboard');
@@ -178,62 +178,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
 
-    // Rutas del panel de administración
-    Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
-        // Dashboard de administración
-        Route::get('/dashboard', function () {
-            // Cargar categorías con el conteo de productos
-            $categories = \App\Models\Category::withCount('products')
-                ->latest()
-                ->take(5)
-                ->get();
-                
-            // Cargar productos con la categoría relacionada
-            $products = \App\Models\Product::with('category')
-                ->latest()
-                ->take(5)
-                ->get();
-                
-            // Cargar páginas
-            $pages = \App\Models\Page::latest()
-                ->take(5)
-                ->get();
-            
-            return view('admin.dashboard', compact('categories', 'products', 'pages'));
-        })->name('admin.dashboard');
-
-        // Rutas de categorías
-        Route::resource('categories', CategoryController::class)
-            ->names('admin.categories')
-            ->middleware('role:admin');
-        
-        // Rutas de productos
-        Route::resource('products', ProductController::class)
-            ->names('admin.products')
-            ->middleware('role:admin');
-        
-        // Ruta para ver productos por categoría
-        Route::get('categories/{category}/products', [CategoryController::class, 'products'])
-             ->name('admin.categories.products')
-             ->middleware('role:admin');
-        
-        // Rutas para la administración de páginas
-        Route::resource('pages', \App\Http\Controllers\Admin\PageController::class)
-             ->names('admin.pages')
-             ->except(['show'])
-             ->middleware('role:admin');
-             
-        // Ruta para actualización directa de páginas
-        Route::post('pages/direct-update/{page}', [\App\Http\Controllers\Admin\PageController::class, 'directUpdate'])
-             ->name('admin.pages.direct-update')
-             ->middleware('role:admin');
-
-        // Gestión de usuarios
-        Route::resource('users', \App\Http\Controllers\Admin\UserController::class)
-             ->names('admin.users')
-             ->middleware('role:admin');
-    });
+// Rutas de administración
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:admin'])->group(function () {
+    // Dashboard de administración
+    Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
+    
+    // Rutas de recursos
+    Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
+    Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
+    Route::resource('pages', \App\Http\Controllers\Admin\PageController::class);
+    Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
 });
 
 // Ruta de contacto

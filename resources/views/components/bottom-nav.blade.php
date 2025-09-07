@@ -2,6 +2,9 @@
     <a href="{{ route('welcome') }}" class="nav-item {{ request()->routeIs('welcome') ? 'active' : '' }}" data-tooltip="Inicio">
         <div class="nav-icon">
             <i class="fas fa-home"></i>
+            @if(request()->routeIs('welcome'))
+                <span class="nav-pulse"></span>
+            @endif
         </div>
         <span class="nav-text">Inicio</span>
     </a>
@@ -99,6 +102,12 @@
     
     .nav-item.active {
         color: #00b0d9;
+        transform: translateY(-4px);
+    }
+    
+    .nav-item.active .nav-icon {
+        color: #00b0d9;
+        transform: scale(1.1);
     }
     
     .nav-item.active::before {
@@ -106,25 +115,41 @@
         opacity: 1;
     }
     
-    .nav-item.active .nav-icon {
-        background: linear-gradient(135deg, #00c6fb 0%, #00b0d9 100%);
-        color: white;
-        box-shadow: 0 4px 12px rgba(0, 198, 251, 0.3);
-    }
-    
     .nav-icon {
-        width: 44px;
-        height: 44px;
-        border-radius: 14px;
+        position: relative;
+        width: 24px;
+        height: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
         margin-bottom: 4px;
-        font-size: 1.2rem;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        background: #f8fafc;
-        color: #6b7280;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-pulse {
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        width: 8px;
+        height: 8px;
+        background: #00c6fb;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(0, 198, 251, 0.7);
+        }
+        70% {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 6px rgba(0, 198, 251, 0);
+        }
+        100% {
+            transform: scale(0.95);
+            box-shadow: 0 0 0 0 rgba(0, 198, 251, 0);
+        }
     }
     
     .nav-text {
