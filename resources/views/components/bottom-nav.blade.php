@@ -1,8 +1,8 @@
 <nav class="bottom-nav">
-    <a href="{{ route('welcome') }}" class="nav-item {{ request()->routeIs('welcome') ? 'active' : '' }}" data-tooltip="Inicio">
+    <a href="/" class="nav-item {{ request()->is('/') || request()->routeIs('welcome') ? 'active' : '' }}" data-tooltip="Inicio">
         <div class="nav-icon">
             <i class="fas fa-home"></i>
-            @if(request()->routeIs('welcome'))
+            @if(request()->is('/') || request()->routeIs('welcome'))
                 <span class="nav-pulse"></span>
             @endif
         </div>

@@ -406,7 +406,7 @@ return [
         // Menú de la Tienda (visible para todos los usuarios autenticados)
         [
             'text' => 'Tienda',
-            'url' => '/vista-1',
+            'url' => '/',
             'icon' => 'fas fa-fw fa-shopping-cart',
             'active' => ['vista-1*'],
         ],

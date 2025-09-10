@@ -358,7 +358,7 @@
                             @endforeach
                             
                             <div class="d-flex justify-content-between align-items-center mt-4">
-                                <a href="{{ route('welcome') }}" class="btn-continue-shopping">
+                                <a href="/" class="btn-continue-shopping">
                                     <i class="fas fa-arrow-left me-2"></i> Seguir comprando
                                 </a>
                                 
@@ -375,22 +375,25 @@
                                 
                                 <div class="summary-row">
                                     <span>Subtotal</span>
-                                    <span id="subtotal">${{ number_format($subtotal, 2, ',', '.') }}</span>
+                                    <span id="subtotal">${{ number_format($total, 2, ',', '.') }}</span>
                                 </div>
                                 
                                 <div class="summary-row">
                                     <span>Envío</span>
-                                    <span id="shipping">${{ number_format($shipping ?? 0, 2, ',', '.') }}</span>
+                                    <span id="shipping">$0.00</span>
                                 </div>
                                 
                                 <div class="summary-row summary-total">
                                     <span>Total</span>
-                                    <span id="total">${{ number_format(($subtotal ?? 0) + ($shipping ?? 0), 2, ',', '.') }}</span>
+                                    <span id="total">${{ number_format($total, 2, ',', '.') }}</span>
                                 </div>
                                 
-                                <button type="button" class="btn-checkout" id="checkout-button" onclick="window.location.href='{{ route('cart.checkout') }}'">
-                                    <i class="fas fa-credit-card me-2"></i> Proceder al pago
-                                </button>
+                                <a href="https://wa.me/573000000000?text={{ urlencode('Hola, estoy interesado en realizar un pedido. Aquí está mi carrito de compras:') }}" 
+                                   class="btn-checkout" 
+                                   target="_blank"
+                                   id="checkout-button">
+                                    <i class="fab fa-whatsapp me-2"></i> Pagar con WhatsApp
+                                </a>
                                 
                                 <div class="text-center mt-3">
                                     <img src="{{ asset('images/payment-methods.png') }}" alt="Métodos de pago" class="img-fluid" style="max-width: 250px; opacity: 0.8;">
@@ -404,7 +407,7 @@
                         <i class="fas fa-shopping-cart"></i>
                         <h3>Tu carrito está vacío</h3>
                         <p>No has agregado ningún producto a tu carrito. Explora nuestros productos y encuentra algo que te guste.</p>
-                        <a href="{{ route('welcome') }}" class="btn btn-outline-primary btn-lg">
+                        <a href="/" class="btn btn-outline-primary btn-lg">
                             <i class="fas fa-arrow-left me-2"></i> Volver a la tienda
                         </a>
                     </div>
