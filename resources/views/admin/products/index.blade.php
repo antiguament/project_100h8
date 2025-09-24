@@ -31,35 +31,33 @@
 
     <div class="card">
         <div class="card-body">
-            <form method="GET" action="{{ route('admin.products.index') }}" class="row g-2 mb-3 align-items-end">
-                <div class="col-12 col-md-4">
-                    <label class="form-label">Categoría</label>
-                    <select name="category_id" class="form-select">
-                        <option value="">Todas</option>
-                        @foreach(($categories ?? []) as $cat)
-                            <option value="{{ $cat->id }}" {{ (($filters['category_id'] ?? '') == $cat->id) ? 'selected' : '' }}>
-                                {{ $cat->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-12 col-md-3">
-                    <label class="form-label">Estado</label>
-                    <select name="status" class="form-select">
-                        <option value="" {{ (($filters['status'] ?? '') === '') ? 'selected' : '' }}>Todos</option>
-                        <option value="active" {{ (($filters['status'] ?? '') === 'active') ? 'selected' : '' }}>Activos</option>
-                        <option value="inactive" {{ (($filters['status'] ?? '') === 'inactive') ? 'selected' : '' }}>Inactivos</option>
-                    </select>
-                </div>
-                <div class="col-12 col-md-3">
-                    <label class="form-label">Buscar</label>
-                    <input type="text" name="q" value="{{ $filters['q'] ?? '' }}" class="form-control" placeholder="Nombre o descripción">
-                </div>
-                <div class="col-12 col-md-2 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary w-100"><i class="fas fa-filter me-1"></i> Filtrar</button>
-                    <a href="{{ route('admin.products.index') }}" class="btn btn-outline-secondary" title="Limpiar filtros"><i class="fas fa-undo"></i></a>
-                </div>
-            </form>
+            @isset($categories)
+                <form method="GET" action="{{ route('admin.products.index') }}" class="mb-3">
+                    <div class="form-row align-items-end">
+                        <div class="col-md-6">
+                            <label for="category_id">Filtrar por categoría</label>
+                            <select name="category_id" id="category_id" class="form-control">
+                                <option value="">Todas las categorías</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat->id }}" 
+                                        @if( (isset($category) && $category->id == $cat->id) || (request('category_id') == $cat->id) ) selected @endif>
+                                        {{ $cat->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6 mt-2 mt-md-0">
+                            <button type="submit" class="btn btn-primary mr-2">
+                                <i class="fas fa-filter"></i> Aplicar filtro
+                            </button>
+                            <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Limpiar
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            @endisset
+
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
@@ -78,17 +76,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @php $currentCategory = null; @endphp
                         @forelse ($products as $product)
-                            @php $categoryName = optional($product->category)->name; @endphp
-                            @if ($categoryName !== $currentCategory)
-                                <tr class="table-secondary">
-                                    <td colspan="11">
-                                        <strong>{{ $categoryName ?? 'Sin categoría' }}</strong>
-                                    </td>
-                                </tr>
-                                @php $currentCategory = $categoryName; @endphp
-                            @endif
                             <tr>
                                 <td>{{ $product->id }}</td>
                                 <td>
@@ -103,7 +91,7 @@
                                     @endif
                                 </td>
                                 <td>{{ $product->name }}</td>
-                                <td>{{ $product->category->name }}</td>
+                                <td>{{ optional($product->category)->name ?? '-' }}</td>
                                 <td>${{ number_format($product->price, 2) }}</td>
                                 <td>{{ $product->stock }}</td>
                                 <td>{{ $product->preferencia_uno ?? '-' }}</td>
@@ -140,7 +128,7 @@
             </div>
             
             <div class="mt-4">
-                {{ $products->links() }}
+                {{ $products->appends(request()->query())->links() }}
             </div>
         </div>
     </div>

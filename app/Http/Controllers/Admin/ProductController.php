@@ -19,67 +19,25 @@ class ProductController extends Controller
     public function index(Request $request): View
     {
         $query = Product::with('category');
-
-        // Filtros
-        $categoryId = $request->input('category_id');
-        $status = $request->input('status'); // 'active', 'inactive' o null
-        $q = $request->input('q'); // búsqueda por nombre o descripción
-
-        if ($categoryId) {
-            $category = Category::findOrFail($categoryId);
+        
+        // Obtener todas las categorías para el selector
+        $categories = Category::orderBy('name')->get();
+        
+        // Filtrar por categoría si se proporciona y no está vacía
+        if ($request->has('category_id') && $request->filled('category_id')) {
+            $category = Category::findOrFail($request->category_id);
             $query->where('category_id', $category->id);
-        }
-
-        if ($status === 'active') {
-            $query->where('is_active', true);
-        } elseif ($status === 'inactive') {
-            $query->where('is_active', false);
-        }
-
-        if (!empty($q)) {
-            $query->where(function ($sub) use ($q) {
-                $sub->where('name', 'like', "%$q%")
-                    ->orWhere('description', 'like', "%$q%");
-            });
-        }
-
-        // Ordenar
-        if ($categoryId) {
-            // Dentro de una categoría, ordenar por nombre de producto
-            $products = $query->orderBy('name')->paginate(10)->appends($request->query());
-
+            
             return view('admin.products.index', [
-                'products' => $products,
-                'category' => Category::find($categoryId),
-                'title' => isset($category) ? "Productos en la categoría: {$category->name}" : 'Productos',
-                'categories' => Category::orderBy('name')->get(),
-                'filters' => [
-                    'category_id' => $categoryId,
-                    'status' => $status,
-                    'q' => $q,
-                ],
+                'products' => $query->latest()->paginate(10),
+                'category' => $category,
+                'title' => "Productos en la categoría: {$category->name}",
+                'categories' => $categories,
             ]);
         }
-
-        // Ordenar por nombre de categoría y luego por nombre de producto
-        $products = $query
-            ->orderBy(
-                Category::select('name')
-                    ->whereColumn('categories.id', 'products.category_id')
-            )
-            ->orderBy('name')
-            ->paginate(10)
-            ->appends($request->query());
-
-        return view('admin.products.index', [
-            'products' => $products,
-            'categories' => Category::orderBy('name')->get(),
-            'filters' => [
-                'category_id' => $categoryId,
-                'status' => $status,
-                'q' => $q,
-            ],
-        ]);
+        
+        $products = $query->latest()->paginate(10);
+        return view('admin.products.index', compact('products', 'categories'));
     }
 
     /**

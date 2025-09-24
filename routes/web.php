@@ -193,8 +193,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
     Route::resource('pages', \App\Http\Controllers\Admin\PageController::class);
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
-    // Galería de imágenes
-    Route::resource('gallery-images', \App\Http\Controllers\Admin\GalleryImageController::class);
 });
 
 // Ruta de contacto
