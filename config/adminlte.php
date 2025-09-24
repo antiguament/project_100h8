@@ -363,15 +363,15 @@ return [
                     'active' => ['admin/users*'],
                     'role' => 'admin',
                 ],
+                [
+                    'text' => 'Galería',
+                    'url' => '/admin/gallery-images',
+                    'icon' => 'fas fa-fw fa-images',
+                    'active' => ['admin/gallery-images*'],
+                    'role' => 'admin',
+                ],
             ],
         ],
-        
-
-
-
-
-
-
         
 
 

@@ -39,6 +39,9 @@ Route::controller(PublicCategoryController::class)->group(function () {
 // Product routes - Using route model binding with slug
 Route::get('/producto/{product:slug}', [App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
 
+// Fallback route for product URLs with ID (in case slug is missing)
+Route::get('/producto/id/{product}', [App\Http\Controllers\ProductController::class, 'showById'])->name('products.show.by.id');
+
 // Ruta para servir imágenes de productos
 Route::get('/images/products/{filename}', function ($filename) {
     $path = storage_path('app/public/products/' . $filename);
@@ -190,6 +193,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:ad
     Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
     Route::resource('pages', \App\Http\Controllers\Admin\PageController::class);
     Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
+    // Galería de imágenes
+    Route::resource('gallery-images', \App\Http\Controllers\Admin\GalleryImageController::class);
 });
 
 // Ruta de contacto

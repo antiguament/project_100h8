@@ -1,475 +1,515 @@
-@extends('adminlte::page')
-
-@section('title', 'Bienvenido - ' . config('app.name'))
-
-@section('content_header')
-    <h1 class="m-0 text-dark">Bienvenido a {{ config('app.name') }}</h1>
-@stop
-
-@section('content')
-<div class="dashboard-container">
-    <!-- Barra superior con información del usuario -->
-    <div class="user-header">
-        <div class="user-greeting">
-            <div class="avatar">
-                <i class="fas fa-user-circle"></i>
-            </div>
-            <div>
-                <h1>¡Hola, {{ $user->name }}!</h1>
-                <p class="text-muted">Bienvenido de nuevo a {{ config('app.name') }}</p>
-            </div>
-        </div>
-        <div class="user-actions">
-            <a href="{{ route('profile.edit') }}" class="btn btn-profile">
-                <i class="fas fa-user-edit"></i> Editar Perfil
+<x-app-layout>
+    <x-slot name="header">
+        <div class="flex items-center">
+            <a href="{{ url()->previous() }}" class="mr-4 text-primary-color hover:text-primary-light transition-colors">
+                <i class="fas fa-arrow-left text-xl"></i>
             </a>
-            <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                @csrf
-                <button type="submit" class="btn btn-logout">
-                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                </button>
-            </form>
+            <h2 class="font-semibold text-xl text-dark-color leading-tight">
+                {{ $product->name }}
+            </h2>
         </div>
-    </div>
+    </x-slot>
 
-    <!-- Tarjetas de resumen -->
-    <div class="summary-cards">
-        <div class="summary-card primary">
-            <div class="card-icon">
-                <i class="fas fa-shopping-bag"></i>
-            </div>
-            <div class="card-info">
-                <h3>0</h3>
-                <p>Pedidos Activos</p>
-            </div>
-        </div>
-        
-        <div class="summary-card success">
-            <div class="card-icon">
-                <i class="fas fa-history"></i>
-            </div>
-            <div class="card-info">
-                <h3>0</h3>
-                <p>Pedidos Anteriores</p>
-            </div>
-        </div>
-        
-        <div class="summary-card warning">
-            <div class="card-icon">
-                <i class="fas fa-heart"></i>
-            </div>
-            <div class="card-info">
-                <h3>0</h3>
-                <p>Favoritos</p>
-            </div>
-        </div>
-    </div>
-    <!-- Acciones rápidas -->
-    <div class="quick-actions">
-        <h2 class="section-title">Acciones Rápidas</h2>
-        <div class="action-grid">
-            <a href="{{ route('vista-1') }}" class="action-card">
-                <div class="action-icon primary">
-                    <i class="fas fa-utensils"></i>
+    <div class="py-6 sm:py-8">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="product-card-improved bg-white rounded-2xl shadow-lg overflow-hidden border border-light-gray">
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-2/5 relative">
+                        <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-full h-64 md:h-full object-cover rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none product-image-improved">
+                        @if($product->is_new)
+                            <span class="absolute top-4 right-4 bg-primary-color text-light-color px-3 py-1 rounded-full text-xs font-bold shadow-md">
+                                ¡Nuevo!
+                            </span>
+                        @endif
+                        @if($product->category)
+                            <span class="absolute top-4 left-4 bg-dark-color/70 text-light-color text-xs font-medium px-2 py-1 rounded-full border border-light-gray/30">
+                                {{ $product->category->name }}
+                            </span>
+                        @endif
+                    </div>
+                    
+                    <div class="md:w-3/5 p-5 md:p-8">
+                        <h1 class="text-2xl md:text-3xl font-bold text-dark-color mb-2">{{ $product->name }}</h1>
+                        
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-2xl md:text-3xl font-bold text-primary-color">${{ number_format($product->price, 2) }}</span>
+                            @if($product->stock > 0)
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-success-color/20 text-success-color border border-success-color/30">
+                                    <i class="fas fa-check-circle mr-1 text-sm"></i> En stock ({{ $product->stock }})
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-danger-color/20 text-danger-color border border-danger-color/30">
+                                    <i class="fas fa-times-circle mr-1 text-sm"></i> Agotado
+                                </span>
+                            @endif
+                        </div>
+                        
+                        <p class="text-gray-color text-sm mb-5 leading-relaxed">{{ $product->description ?? 'Este producto no tiene una descripción detallada.' }}</p>
+                        
+                        <div class="desktop-only">
+                            <form id="add-to-cart-form" action="{{ route('cart.add', $product->id) }}" method="POST" class="mb-0">
+                                @csrf
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="text-sm text-gray-color font-medium">Cantidad:</span>
+                                    <div class="flex items-center">
+                                        <button type="button" class="quantity-btn-improved border border-gray-color text-gray-color" onclick="decrementQuantity()">-</button>
+                                        <input type="number" name="quantity" id="quantity" value="1" min="1" 
+                                               max="{{ $product->stock }}" class="quantity-input-improved border-gray-color" 
+                                               onchange="validateQuantity({{ $product->stock }})">
+                                        <button type="button" class="quantity-btn-improved bg-primary-color text-white" onclick="incrementQuantity({{ $product->stock }})">+</button>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" id="add-to-cart-btn" class="add-to-cart-btn-improved w-full" {{ $product->stock <= 0 ? 'disabled' : '' }}>
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <span id="add-to-cart-text">
+                                        {{ $product->stock > 0 ? 'Agregar al carrito' : 'Producto agotado' }}
+                                    </span>
+                                    <span id="add-to-cart-spinner" class="hidden ml-2">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </span>
+                                </button>
+                                <div id="cart-message" class="mt-2 text-center text-xs"></div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
-                <h3>Ver Menú</h3>
-                <p>Explora nuestra deliciosa selección de platos</p>
-            </a>
+                
+                <div class="border-t border-light-gray">
+                    <details class="group">
+                        <summary class="flex items-center justify-between p-4 cursor-pointer accordion-summary-improved">
+                            <h3 class="text-sm font-semibold text-dark-color">Detalles del producto</h3>
+                            <span class="transition group-open:rotate-180">
+                                <i class="fas fa-chevron-down text-gray-color text-xs"></i>
+                            </span>
+                        </summary>
+                        <div class="px-4 pb-4">
+                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <div class="detail-item-improved">
+                                    <span class="detail-label-improved">Categoría</span>
+                                    <span class="detail-value-improved font-medium text-dark-color">{{ $product->category->name ?? 'N/A' }}</span>
+                                </div>
+                                <div class="detail-item-improved">
+                                    <span class="detail-label-improved">Disponibilidad</span>
+                                    <span class="detail-value-improved font-medium">{{ $product->stock > 0 ? 'En stock' : 'Agotado' }}</span>
+                                </div>
+                                <div class="detail-item-improved">
+                                    <span class="detail-label-improved">Precio</span>
+                                    <span class="detail-value-improved font-medium text-primary-color">${{ number_format($product->price, 2) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
             
-            <a href="#" class="action-card">
-                <div class="action-icon success">
-                    <i class="fas fa-shopping-cart"></i>
+            @if($relatedProducts->count() > 0)
+            <div class="mt-8">
+                <h3 class="text-lg font-semibold text-dark-color mb-4 flex items-center">
+                    <span class="h-5 w-1 bg-primary-color rounded-full mr-2"></span>
+                    Productos relacionados
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    @foreach($relatedProducts as $relatedProduct)
+                    <a href="{{ route('products.show', $relatedProduct) }}" class="related-product-card-improved bg-white rounded-lg shadow-lg border border-light-gray overflow-hidden transition-transform hover:scale-[1.02] hover:shadow-xl">
+                        <div class="relative">
+                            <img src="{{ $relatedProduct->image_url }}" alt="{{ $relatedProduct->name }}" class="w-full h-32 object-cover">
+                            @if($relatedProduct->is_new)
+                                <span class="absolute top-2 right-2 bg-primary-color text-white px-1.5 py-0.5 rounded text-xs font-bold">Nuevo</span>
+                            @endif
+                        </div>
+                        <div class="p-3">
+                            <h4 class="related-product-name-improved text-xs font-medium text-dark-color line-clamp-2 mb-1">{{ $relatedProduct->name }}</h4>
+                            <p class="related-product-price-improved text-primary-color font-bold">${{ number_format($relatedProduct->price, 2) }}</p>
+                        </div>
+                    </a>
+                    @endforeach
                 </div>
-                <h3>Mi Carrito</h3>
-                <p>Revisa tus productos seleccionados</p>
-            </a>
-            
-            <a href="#" class="action-card">
-                <div class="action-icon warning">
-                    <i class="fas fa-map-marker-alt"></i>
-                </div>
-                <h3>Mis Direcciones</h3>
-                <p>Gestiona tus direcciones de envío</p>
-            </a>
-            
-            <a href="{{ route('profile.edit') }}" class="action-card">
-                <div class="action-icon info">
-                    <i class="fas fa-user-cog"></i>
-                </div>
-                <h3>Configuración</h3>
-                <p>Personaliza tu cuenta y preferencias</p>
-            </a>
+            </div>
+            @endif
         </div>
     </div>
+    
+    <div class="fixed-action-btn-improved">
+        <form id="mobile-add-to-cart-form" action="{{ route('cart.add', $product->id) }}" method="POST" class="w-full">
+            @csrf
+            <input type="hidden" name="quantity" value="1" id="mobile-quantity">
+            <button type="submit" id="mobile-add-to-cart-btn" class="add-to-cart-btn-improved mobile-btn-improved" {{ $product->stock <= 0 ? 'disabled' : '' }}>
+                <i class="fas fa-shopping-cart"></i>
+                <span id="mobile-add-to-cart-text">
+                    {{ $product->stock > 0 ? 'Agregar - $' . number_format($product->price, 2) : 'Producto agotado' }}
+                </span>
+                <span id="mobile-add-to-cart-spinner" class="hidden ml-2">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </span>
+            </button>
+        </form>
+    </div>
+    
+    <x-bottom-nav />
+    
+    @push('styles')
+    <style>
+        :root {
+            --primary-color: #E63946;
+            --primary-light: #FF6B6B;
+            --secondary-color: #2A9D8F;
+            --dark-color: #1D3557;
+            --light-color: #F1FAEE;
+            --success-color: #2A9D8F;
+            --warning-color: #F4A261;
+            --danger-color: #E76F51;
+            --gray-color: #495057;
+            --light-gray: #E9ECEF;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
 
-    <!-- Sección de pedidos recientes -->
-    <div class="recent-orders">
-        <div class="section-header">
-            <h2 class="section-title">Tus Pedidos Recientes</h2>
-            <a href="#" class="view-all">Ver todos</a>
-        </div>
+        body {
+            background-color: var(--light-gray);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding-bottom: 90px;
+        }
+
+        .product-card-improved, .related-product-card-improved {
+            transition: var(--transition);
+            box-shadow: var(--box-shadow);
+        }
+
+        .product-card-improved:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .quantity-btn-improved {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .quantity-btn-improved:hover {
+            transform: translateY(-1px);
+        }
         
-        <div class="no-orders">
-            <i class="fas fa-shopping-bag"></i>
-            <h3>No hay pedidos recientes</h3>
-            <p>¡Aún no has realizado ningún pedido!</p>
-            <a href="{{ route('vista-1') }}" class="btn btn-primary">
-                <i class="fas fa-utensils"></i> Ver Menú
-            </a>
-        </div>
-    </div>
-</div>
+        .quantity-input-improved {
+            width: 50px;
+            height: 32px;
+            text-align: center;
+            margin: 0 8px;
+            border: 1px solid;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: var(--light-gray);
+            color: var(--dark-color);
+            -moz-appearance: textfield;
+        }
 
-<style>
-:root {
-    --primary-color: #E63946;
-    --primary-light: #FF6B6B;
-    --secondary-color: #2A9D8F;
-    --dark-color: #1D3557;
-    --light-color: #F1FAEE;
-    --success-color: #2A9D8F;
-    --warning-color: #F4A261;
-    --danger-color: #E76F51;
-    --gray-color: #495057;
-    --light-gray: #E9ECEF;
-    --border-radius: 12px;
-    --box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    --transition: all 0.3s ease;
-}
+        .quantity-input-improved::-webkit-outer-spin-button,
+        .quantity-input-improved::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
-.dashboard-container {
-    max-width: 1200px;
-    margin: 2rem auto;
-    padding: 0 1.5rem;
-}
+        .add-to-cart-btn-improved {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            cursor: pointer;
+        }
 
-/* Estilos para la barra superior */
-.user-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2.5rem;
-    background: white;
-    padding: 1.5rem;
-    border-radius: var(--border-radius);
-    box-shadow: var(--box-shadow);
-}
+        .add-to-cart-btn-improved:not(:disabled):hover {
+            background: #C1121F;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(230, 57, 70, 0.25);
+        }
 
-.user-greeting {
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-}
+        .add-to-cart-btn-improved:disabled {
+            background: var(--light-gray);
+            color: var(--gray-color);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
 
-.avatar {
-    width: 70px;
-    height: 70px;
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 2.5rem;
-}
+        .fixed-action-btn-improved {
+            position: fixed;
+            bottom: 80px;
+            left: 1rem;
+            right: 1rem;
+            z-index: 50;
+            display: none;
+            pointer-events: none;
+        }
 
-.user-greeting h1 {
-    font-size: 1.75rem;
-    margin: 0;
-    color: var(--dark-color);
-}
+        .fixed-action-btn-improved > * {
+            pointer-events: auto;
+        }
 
-.user-actions {
-    display: flex;
-    gap: 1rem;
-}
+        .mobile-btn-improved {
+            border-radius: 12px;
+            padding: 0.9rem;
+            box-shadow: 0 4px 12px rgba(230, 57, 70, 0.35);
+        }
 
-.btn-profile, .btn-logout {
-    padding: 0.6rem 1.2rem;
-    border-radius: 50px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: var(--transition);
-    border: none;
-    cursor: pointer;
-}
+        .accordion-summary-improved {
+            transition: background-color 0.2s ease;
+        }
 
-.btn-profile {
-    background: var(--primary-color);
-    color: white;
-}
+        .accordion-summary-improved:hover {
+            background: var(--light-gray);
+        }
 
-.btn-profile:hover {
-    background: #C1121F;
-    transform: translateY(-2px);
-}
+        .detail-item-improved {
+            padding: 0.5rem;
+            border-radius: 8px;
+            background: var(--light-gray);
+        }
 
-.btn-logout {
-    background: var(--light-gray);
-    color: var(--gray-color);
-}
+        .detail-label-improved {
+            font-size: 0.7rem;
+            color: var(--gray-color);
+            opacity: 0.7;
+        }
 
-.btn-logout:hover {
-    background: #DEE2E6;
-    transform: translateY(-2px);
-}
+        .detail-value-improved {
+            font-size: 0.9rem;
+            color: var(--dark-color);
+        }
 
-/* Tarjetas de resumen */
-.summary-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
-}
+        .related-product-card-improved {
+            transition: var(--transition);
+        }
 
-.summary-card {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
-    box-shadow: var(--box-shadow);
-    transition: var(--transition);
-    border-left: 4px solid transparent;
-}
+        .related-product-card-improved:hover {
+            transform: translateY(-3px);
+        }
 
-.summary-card:hover {
-    transform: translateY(-5px);
-}
+        .related-product-name-improved {
+            color: var(--dark-color);
+        }
 
-.summary-card.primary {
-    border-left-color: var(--primary-color);
-}
+        .related-product-price-improved {
+            color: var(--primary-color);
+        }
 
-.summary-card.success {
-    border-left-color: var(--success-color);
-}
+        @media (max-width: 768px) {
+            .fixed-action-btn-improved {
+                display: block;
+            }
+            
+            .desktop-only {
+                display: none;
+            }
+            
+            .product-card-improved {
+                border-radius: 16px;
+            }
+            
+            .product-image-improved {
+                border-bottom: 1px solid var(--light-gray);
+            }
+        }
 
-.summary-card.warning {
-    border-left-color: var(--warning-color);
-}
+        details summary {
+            list-style: none;
+        }
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+    </style>
+    @endpush
 
-.card-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: white;
-}
+    @push('scripts')
+    <script>
+        // Handle add to cart form submission
+        document.getElementById('add-to-cart-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const form = this;
+            const submitBtn = document.getElementById('add-to-cart-btn');
+            const spinner = document.getElementById('add-to-cart-spinner');
+            const messageDiv = document.getElementById('cart-message');
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            spinner.classList.remove('hidden');
+            messageDiv.textContent = '';
+            
+            // Submit form via AJAX
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    quantity: document.getElementById('quantity').value,
+                    _token: '{{ csrf_token() }}'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    messageDiv.textContent = '¡Producto agregado al carrito!';
+                    messageDiv.className = 'mt-2 text-center text-xs text-success-color';
+                    
+                    // Update cart count in navigation if exists
+                    const cartCount = document.querySelector('.cart-count');
+                    if (cartCount) {
+                        const currentCount = parseInt(cartCount.textContent) || 0;
+                        cartCount.textContent = currentCount + parseInt(document.getElementById('quantity').value);
+                        cartCount.classList.remove('hidden');
+                    }
+                } else {
+                    messageDiv.textContent = data.message || 'Error al agregar al carrito';
+                    messageDiv.className = 'mt-2 text-center text-xs text-danger-color';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                messageDiv.textContent = 'Error al conectar con el servidor';
+                messageDiv.className = 'mt-2 text-center text-xs text-danger-color';
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                spinner.classList.add('hidden');
+                
+                // Auto-hide message after 3 seconds
+                if (messageDiv.textContent) {
+                    setTimeout(() => {
+                        messageDiv.textContent = '';
+                    }, 3000);
+                }
+            });
+        });
+        
+        // Update mobile quantity when desktop quantity changes
+        function updateMobileQuantity(value) {
+            document.getElementById('mobile-quantity').value = value;
+        }
 
-.primary .card-icon { background: var(--primary-color); }
-.success .card-icon { background: var(--success-color); }
-.warning .card-icon { background: var(--warning-color); }
+        function incrementQuantity(max) {
+            const input = document.getElementById('quantity');
+            let value = parseInt(input.value) || 1;
+            if (value < max) {
+                input.value = value + 1;
+                updateMobileQuantity(input.value);
+            }
+        }
 
-.card-info h3 {
-    margin: 0;
-    font-size: 1.75rem;
-    color: var(--dark-color);
-}
+        function decrementQuantity() {
+            const input = document.getElementById('quantity');
+            let value = parseInt(input.value) || 1;
+            if (value > 1) {
+                input.value = value - 1;
+                updateMobileQuantity(input.value);
+            }
+        }
 
-.card-info p {
-    margin: 0.25rem 0 0;
-    color: var(--gray-color);
-    font-size: 0.9rem;
-}
-
-/* Acciones rápidas */
-.quick-actions {
-    margin-bottom: 2.5rem;
-}
-
-.section-title {
-    font-size: 1.5rem;
-    color: var(--dark-color);
-    margin-bottom: 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.view-all {
-    font-size: 0.95rem;
-    color: var(--primary-color);
-    text-decoration: none;
-    font-weight: 500;
-    transition: var(--transition);
-}
-
-.view-all:hover {
-    text-decoration: underline;
-}
-
-.action-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
-}
-
-.action-card {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 1.75rem 1.5rem;
-    text-align: center;
-    text-decoration: none;
-    color: inherit;
-    transition: var(--transition);
-    box-shadow: var(--box-shadow);
-    border: 1px solid rgba(0,0,0,0.05);
-    display: block;
-}
-
-.action-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-}
-
-.action-icon {
-    width: 70px;
-    height: 70px;
-    margin: 0 auto 1.25rem;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.75rem;
-    color: white;
-}
-
-.action-icon.primary { background: var(--primary-color); }
-.action-icon.success { background: var(--success-color); }
-.action-icon.warning { background: var(--warning-color); }
-.action-icon.info { background: #4A90E2; }
-
-.action-card h3 {
-    margin: 0 0 0.5rem;
-    color: var(--dark-color);
-    font-size: 1.1rem;
-}
-
-.action-card p {
-    margin: 0;
-    color: var(--gray-color);
-    font-size: 0.9rem;
-    line-height: 1.5;
-}
-
-/* Pedidos recientes */
-.recent-orders {
-    background: white;
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    box-shadow: var(--box-shadow);
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-}
-
-.no-orders {
-    text-align: center;
-    padding: 3rem 2rem;
-    border: 2px dashed var(--light-gray);
-    border-radius: var(--border-radius);
-    color: var(--gray-color);
-}
-
-.no-orders i {
-    font-size: 3rem;
-    color: var(--light-gray);
-    margin-bottom: 1rem;
-}
-
-.no-orders h3 {
-    margin: 0 0 0.5rem;
-    color: var(--dark-color);
-}
-
-.no-orders p {
-    margin-bottom: 1.5rem;
-}
-
-.btn-primary {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 50px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: var(--transition);
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.btn-primary:hover {
-    background: #C1121F;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
-}
-
-/* Estilos responsivos */
-@media (max-width: 992px) {
-    .user-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 1.5rem;
-    }
-    
-    .user-greeting {
-        flex-direction: column;
-        text-align: center;
-    }
-    
-    .user-actions {
-        width: 100%;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-}
-
-@media (max-width: 768px) {
-    .summary-cards {
-        grid-template-columns: 1fr;
-    }
-    
-    .action-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .user-greeting h1 {
-        font-size: 1.5rem;
-    }
-}
-</style>
-
-@if (session('status'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        {{ session('status') }}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-@endif
-
-@stop
-
-@push('js')
-<script>
-    // Scripts específicos para esta página
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inicialización de componentes de AdminLTE si es necesario
-        console.log('Página de bienvenida cargada');
-    });
-</script>
-@endpush
+        function validateQuantity(max) {
+            const input = document.getElementById('quantity');
+            let value = parseInt(input.value) || 1;
+            
+            if (value < 1) input.value = 1;
+            if (value > max) input.value = max;
+            
+            updateMobileQuantity(input.value);
+        }
+        
+        // Handle mobile add to cart form submission
+        document.getElementById('mobile-add-to-cart-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const form = this;
+            const submitBtn = document.getElementById('mobile-add-to-cart-btn');
+            const spinner = document.getElementById('mobile-add-to-cart-spinner');
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            spinner.classList.remove('hidden');
+            
+            // Submit form via AJAX
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({
+                    quantity: document.getElementById('mobile-quantity').value,
+                    _token: '{{ csrf_token() }}'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    const message = document.createElement('div');
+                    message.className = 'fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-success-color text-white px-4 py-2 rounded-lg shadow-lg text-sm';
+                    message.textContent = '¡Producto agregado al carrito!';
+                    document.body.appendChild(message);
+                    
+                    // Update cart count in navigation if exists
+                    const cartCount = document.querySelector('.cart-count');
+                    if (cartCount) {
+                        const currentCount = parseInt(cartCount.textContent) || 0;
+                        cartCount.textContent = currentCount + parseInt(document.getElementById('mobile-quantity').value);
+                        cartCount.classList.remove('hidden');
+                    }
+                    
+                    // Remove message after 2 seconds
+                    setTimeout(() => {
+                        message.remove();
+                    }, 2000);
+                } else {
+                    // Show error message
+                    const message = document.createElement('div');
+                    message.className = 'fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-danger-color text-white px-4 py-2 rounded-lg shadow-lg text-sm';
+                    message.textContent = data.message || 'Error al agregar al carrito';
+                    document.body.appendChild(message);
+                    
+                    setTimeout(() => {
+                        message.remove();
+                    }, 3000);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const message = document.createElement('div');
+                message.className = 'fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-danger-color text-white px-4 py-2 rounded-lg shadow-lg text-sm';
+                message.textContent = 'Error al conectar con el servidor';
+                document.body.appendChild(message);
+                
+                setTimeout(() => {
+                    message.remove();
+                }, 3000);
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                spinner.classList.add('hidden');
+            });
+        });
+    </script>
+    @endpush
+</x-app-layout>

@@ -349,7 +349,7 @@
                                                 <button class="quantity-btn plus" data-id="{{ $id }}">+</button>
                                             </div>
                                             
-                                            <button class="remove-from-cart" data-id="{{ $id }}">
+                                            <button class="remove-from-cart btn btn-sm btn-outline-danger" data-id="{{ $id }}">
                                                 <i class="fas fa-trash-alt me-1"></i> Eliminar
                                             </button>
                                         </div>
@@ -421,6 +421,27 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // Función para mostrar notificaciones
+    function showAlert(icon, title, text) {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer);
+                toast.addEventListener('mouseleave', Swal.resumeTimer);
+            }
+        });
+        
+        Toast.fire({
+            icon: icon,
+            title: title,
+            text: text
+        });
+    }
+
     $(document).ready(function() {
         // Función para actualizar el carrito
         function updateCartItem(id, quantity) {
@@ -435,12 +456,12 @@
                 success: function(response) {
                     if (response.success) {
                         // Actualizar la interfaz
-                        $('#cart-count').text(response.cart_count);
-                        $('#subtotal').text('$' + response.subtotal.toLocaleString('es-ES', {minimumFractionDigits: 2}));
-                        $('#total').text('$' + (response.subtotal + {{ $shipping ?? 0 }}).toLocaleString('es-ES', {minimumFractionDigits: 2}));
+                        $('.cart-count').text(response.cart_count);
+                        $('#subtotal').text('$' + parseFloat(response.total).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'));
+                        $('#total').text('$' + parseFloat(response.total).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'));
                         
                         // Si la cantidad es 0, eliminar el elemento del DOM
-                        if (response.quantity === 0) {
+                        if (quantity === 0) {
                             $('#cart-item-' + id).fadeOut(300, function() {
                                 $(this).remove();
                                 if ($('.cart-item').length === 0) {
@@ -449,104 +470,27 @@
                             });
                         }
                         
-                        showAlert('success', '¡Actualizado!', 'El carrito se ha actualizado correctamente.');
+                        showAlert('success', '¡Eliminado!', 'El producto ha sido eliminado del carrito');
                     }
                 },
                 error: function(xhr) {
-                    showAlert('error', 'Error', 'No se pudo actualizar el carrito. Por favor, inténtalo de nuevo.');
+                    showAlert('error', 'Error', 'No se pudo eliminar el producto. Por favor, inténtalo de nuevo.');
                     console.error(xhr.responseText);
                 }
             });
         }
-        
-        // Función para mostrar notificación
-        function showAlert(icon, title, text) {
-            const Toast = Swal.mixin({
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                didOpen: (toast) => {
-                    toast.addEventListener('mouseenter', Swal.stopTimer);
-                    toast.addEventListener('mouseleave', Swal.resumeTimer);
-                }
-            });
-            
-            Toast.fire({
-                icon: icon,
-                title: title,
-                text: text
-            });
-        }
-        
-        // Manejar clic en botones de cantidad
-        $('.quantity-btn').click(function() {
-            var input = $(this).siblings('.quantity-input');
-            var currentVal = parseInt(input.val());
-            var max = parseInt(input.attr('max'));
-            
-            if ($(this).hasClass('plus') && currentVal < max) {
-                input.val(currentVal + 1).trigger('change');
-            } else if ($(this).hasClass('minus') && currentVal > 1) {
-                input.val(currentVal - 1).trigger('change');
-            }
-        });
-        
-        // Actualizar carrito cuando cambia la cantidad
-        $('.quantity-input').on('change', function() {
-            var id = $(this).data('id');
-            var quantity = $(this).val();
-            updateCartItem(id, quantity);
-        });
-        
-        // Eliminar producto del carrito
-        $('.remove-from-cart').click(function(e) {
+
+        // Manejar clic en botón de eliminar
+        $(document).on('click', '.remove-from-cart', function(e) {
             e.preventDefault();
-            var id = $(this).data('id');
-            var button = $(this);
+            const id = $(this).data('id');
+            const button = $(this);
             
-            Swal.fire({
-                title: '¿Estás seguro?',
-                text: '¿Deseas eliminar este producto de tu carrito?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    updateCartItem(id, 0);
-                }
-            });
-        });
-        
-        // Botón de actualizar carrito
-        $('#update-cart').click(function() {
-            $('.quantity-input').each(function() {
-                var id = $(this).data('id');
-                var quantity = $(this).val();
-                updateCartItem(id, quantity);
-            });
-        });
-        
-        // Botón de pago
-        $('#checkout-button').click(function() {
-            Swal.fire({
-                title: 'Redirigiendo al pago',
-                text: 'Estás siendo redirigido al proceso de pago seguro...',
-                icon: 'info',
-                showConfirmButton: false,
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                    // Aquí iría la lógica de redirección al pago
-                    setTimeout(() => {
-                        window.location.href = '{{ route('cart.checkout') }}';
-                    }, 1500);
-                }
-            });
+            // Deshabilitar el botón para evitar múltiples clics
+            button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Eliminando...');
+            
+            // Llamar a la función de actualización con cantidad 0 para eliminar
+            updateCartItem(id, 0);
         });
     });
 </script>
