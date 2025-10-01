@@ -402,6 +402,19 @@ return [
                 ],
             ],
         ],
+
+        [
+            'text' => 'FACTURACION',
+            'icon' => 'fas fa-fw fa-user',
+            'submenu' => [
+                [
+                    'text' => 'Pedidos',
+                    'url' => '/admin/pedidos',
+                    'icon' => 'fas fa-fw fa-user-edit',
+                ],
+               
+            ],
+        ],
         
         // Menú de la Tienda (visible para todos los usuarios autenticados)
         [

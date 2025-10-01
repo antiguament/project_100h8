@@ -51,6 +51,40 @@
                             <p class="text-venice-light text-sm leading-relaxed">{{ $product->description ?? 'Este producto no tiene una descripción detallada.' }}</p>
                         </div>
                         
+
+<!-- Preferencias del producto -->
+@php($groups=[
+  ['k'=>'preferencia_uno','l'=>$product->preferencia_uno??null,'o'=>$product->opciones_preferencia_uno??[], 'm'=>(int)($product->max_selecciones_uno??1)],
+  ['k'=>'preferencia_dos','l'=>$product->preferencia_dos??null,'o'=>$product->opciones_preferencia_dos??[], 'm'=>(int)($product->max_selecciones_dos??1)],
+  ['k'=>'preferencia_tres','l'=>$product->preferencia_tres??null,'o'=>$product->opciones_preferencia_tres??[], 'm'=>(int)($product->max_selecciones_tres??1)],
+])
+@foreach($groups as $g)
+  @if(!empty($g['l']) && is_array($g['o']) && count($g['o']))
+    <div class="mb-5 venetian-preferences-group" data-group="{{ $g['k'] }}" data-max="{{ $g['m'] }}">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm text-venice-gold-light font-semibold">
+          {{ $g['l'] }}
+          @if($g['m']>1)
+            <span class="text-venice-light/80">(Máx. {{ $g['m'] }})</span>
+          @endif
+        </span>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        @php($multi=$g['m']>1)
+        @foreach($g['o'] as $opt)
+          <label class="venetian-option-chip">
+            <input type="{{ $multi ? 'checkbox' : 'radio' }}" name="{{ $g['k'] }}{{ $multi ? '[]' : '' }}" value="{{ $opt }}" class="sr-only venetian-pref-input" data-group="{{ $g['k'] }}">
+            <span class="venetian-option-label">{{ $opt }}</span>
+          </label>
+        @endforeach
+      </div>
+    </div>
+  @endif
+@endforeach
+<!-- /Preferencias del producto -->
+
+
+
                         <!-- Desktop Add to Cart -->
                         <div class="desktop-only">
                             <form id="add-to-cart-form" action="{{ route('cart.add', $product->id) }}" method="POST" class="mb-0">
@@ -166,6 +200,66 @@
     
     @push('styles')
     <style>
+
+
+
+
+
+/* Estilos para las opciones de preferencia */
+.venetian-option-chip {
+    display: inline-block;
+    margin: 4px;
+    position: relative;
+}
+
+.venetian-option-label {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.venetian-option-chip input[type="radio"]:checked + .venetian-option-label,
+.venetian-option-chip input[type="checkbox"]:checked + .venetian-option-label {
+    background-color: #0ee4eb;
+    color: white;
+    border-color: #0ee4eb;
+}
+
+.venetian-option-chip input[type="radio"],
+.venetian-option-chip input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+}
+
+.venetian-preferences-group {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.venetian-preferences-group h4 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    color: #333;
+    font-size: 1rem;
+}
+
+.venetian-preferences-group.invalid {
+    border: 1px solid #ff4444;
+}
+
+
+
+
+
+
+
+
         :root {
             --venice-blue: #0A2E36;
             --venice-blue-dark: #051F26;
@@ -194,6 +288,41 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
         }
+
+
+
+
+/* Chips de opciones de preferencias */
+.venetian-option-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1.5px solid rgba(14, 228, 235, 0.35);
+  color: var(--venice-gold-light);
+  padding: 0.4rem 0.7rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: rgba(13, 77, 90, 0.35);
+  user-select: none;
+}
+.venetian-option-chip:hover {
+  transform: translateY(-2px);
+  border-color: rgba(14, 228, 235, 0.6);
+}
+.venetian-option-chip input:checked + .venetian-option-label {
+  background: linear-gradient(135deg, var(--venice-light), var(--venice-accent));
+  color: var(--venice-blue-dark);
+  box-shadow: var(--shadow-venice);
+}
+.venetian-option-label {
+  border-radius: 9999px;
+  padding: 0.25rem 0.6rem;
+  transition: all 0.2s ease;
+}
+
+
+
+
 
         .venetian-product-card {
             transition: all 0.3s ease;
@@ -487,6 +616,23 @@
             card.style.setProperty('--index', index);
         });
 
+
+
+
+  // Preferencias: recolectar selección por grupo (clave = preferencia_*). Si max>1 devuelve array, si no string.
+  function getSelectedPreferences() {
+    const res = {};
+    document.querySelectorAll('.venetian-preferences-group').forEach(group => {
+      const key = group.getAttribute('data-group');
+      const max = parseInt(group.getAttribute('data-max') || '1', 10);
+      const selected = Array.from(group.querySelectorAll('.venetian-pref-input:checked')).map(i => i.value);
+      if (selected.length > 0) res[key] = max > 1 ? selected : selected[0];
+    });
+    return res;
+  }
+
+
+
         // Handle add to cart form submission
         document.getElementById('add-to-cart-form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -606,10 +752,19 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 },
                 body: JSON.stringify({
-                    quantity: document.getElementById('mobile-quantity').value,
-                    _token: '{{ csrf_token() }}'
-                })
+  quantity: document.getElementById('mobile-quantity').value,
+  _token: '{{ csrf_token() }}',
+  ...(() => {
+    const p = getSelectedPreferences();
+    return {
+      preferencia_uno: p.preferencia_uno,
+      preferencia_dos: p.preferencia_dos,
+      preferencia_tres: p.preferencia_tres
+    };
+  })()
+})
             })
+
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -660,5 +815,61 @@
             });
         });
     </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('add-to-cart-form');
+    const prefInputs = {
+        uno: document.getElementById('preferencia_uno_input'),
+        dos: document.getElementById('preferencia_dos_input'),
+        tres: document.getElementById('preferencia_tres_input')
+    };
+
+    // Actualizar preferencias cuando se seleccionan opciones
+    document.querySelectorAll('.venetian-pref-input').forEach(input => {
+        input.addEventListener('change', function() {
+            const group = this.dataset.group;
+            const groupKey = group.split('_')[1]; // Obtener 'uno', 'dos' o 'tres'
+            const isMultiple = this.type === 'checkbox';
+            
+            if (isMultiple) {
+                const checked = document.querySelectorAll(`input[name="${group}[]"]:checked`);
+                const values = Array.from(checked).map(cb => cb.value);
+                prefInputs[groupKey].value = JSON.stringify(values);
+            } else {
+                prefInputs[groupKey].value = this.value;
+            }
+        });
+    });
+
+    // Validar preferencias antes de enviar el formulario
+    form.addEventListener('submit', function(e) {
+        let hasErrors = false;
+        
+        // Validar que se hayan seleccionado las preferencias requeridas
+        document.querySelectorAll('.venetian-preferences-group').forEach(group => {
+            const groupKey = group.dataset.group.split('_')[1];
+            const max = parseInt(group.dataset.max);
+            const checked = group.querySelectorAll('input[type="checkbox"]:checked, input[type="radio"]:checked');
+            
+            if (checked.length === 0) {
+                hasErrors = true;
+                group.style.border = '1px solid red';
+            } else if (checked.length > max) {
+                hasErrors = true;
+                alert(`Solo puedes seleccionar un máximo de ${max} opciones para esta preferencia.`);
+            } else {
+                group.style.border = 'none';
+            }
+        });
+
+        if (hasErrors) {
+            e.preventDefault();
+            alert('Por favor completa todas las preferencias requeridas.');
+        }
+    });
+});
+</script>
+
     @endpush
 </x-app-layout>

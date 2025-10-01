@@ -4,6 +4,8 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminController;
+
 
 // Rutas públicas
 use App\Models\Page;
@@ -202,3 +204,29 @@ Route::get('/contacto', function () {
 
 // Route for AJAX product filtering
 Route::get('/filter-products', [App\Http\Controllers\HomeController::class, 'filterProducts'])->name('products.filter');
+
+
+
+
+// Ruta para guardar pedido en archivo
+Route::post('/cart/save-order', [App\Http\Controllers\CartController::class, 'saveOrderToFile'])->name('cart.saveOrder');
+
+
+
+// Rutas de administración (opcional: agregar middleware de autenticación)
+Route::prefix('admin')->group(function () {
+    Route::get('/pedidos', [App\Http\Controllers\AdminController::class, 'showOrderLogs'])->name('admin.order-logs');
+});
+
+
+// Ruta para imprimir ticket térmico
+Route::get('/admin/pedidos/{id}/print', [App\Http\Controllers\AdminController::class, 'printOrderTicket'])->name('admin.print-ticket');
+
+
+Route::prefix('admin')->group(function () {
+    Route::get('/order-logs', [AdminController::class, 'showOrderLogs'])->name('admin.order-logs');
+    Route::get('/print-ticket/{orderId}', [AdminController::class, 'printOrderTicket'])->name('admin.print-ticket');
+    Route::get('/statistics', [AdminController::class, 'showStatistics'])->name('admin.statistics');
+    Route::get('/download-logs', [AdminController::class, 'downloadOrderLogs'])->name('admin.download-logs');
+    Route::delete('/clear-logs', [AdminController::class, 'clearOrderLogs'])->name('admin.clear-logs');
+});
