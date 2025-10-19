@@ -22,21 +22,7 @@ class PublicCategoryController extends Controller
     }
 
     /**
-     * Muestra los productos de una categoría específica usando su slug
-     */
-    public function show(Category $category): View
-    {
-        // Cargar los productos activos de la categoría
-        $products = $category->products()
-            ->where('is_active', true)
-            ->orderBy('name')
-            ->get();
-
-        return view('categories.show', compact('category', 'products'));
-    }
-
-    /**
-     * Muestra los productos de una categoría específica (método antiguo por ID)
+     * Muestra los productos de una categoría específica
      */
     public function showProducts($categoryId): View
     {

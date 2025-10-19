@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'Panel de Administración')
+@section('title', 'Dashboard')
 
 @section('content_header')
     <h1>Panel de Administración</h1>
@@ -25,7 +25,7 @@
                     <div class="info-box-content">
                         <span class="info-box-text">Categorías</span>
                         <span class="info-box-number">
-                            {{ $categories->count() }}
+                            {{ App\Models\Category::count() }}
                             <small>Categorías</small>
                         </span>
                     </div>
@@ -37,7 +37,7 @@
                     <div class="info-box-content">
                         <span class="info-box-text">Productos</span>
                         <span class="info-box-number">
-                            {{ $products->count() }}
+                            {{ App\Models\Product::count() }}
                             <small>Productos</small>
                         </span>
                     </div>
@@ -49,7 +49,7 @@
                     <div class="info-box-content">
                         <span class="info-box-text">Páginas</span>
                         <span class="info-box-number">
-                            {{ $pages->count() }}
+                            {{ App\Models\Page::count() }}
                             <small>Páginas</small>
                         </span>
                     </div>
@@ -57,132 +57,155 @@
             </div>
         </div>
 
-        <!-- Tablas de resumen -->
+        <!-- Tablas de contenido -->
         <div class="row">
-            <!-- Últimas Categorías -->
+            <!-- Tabla de Categorías -->
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Últimas Categorías</h3>
                         <div class="card-tools">
-                            <a href="{{ route('admin.categories.index') }}" class="btn btn-sm btn-primary">
-                                Ver Todas <i class="fas fa-arrow-circle-right ml-1"></i>
+                            <a href="{{ route('admin.categories.create') }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus"></i> Nueva Categoría
                             </a>
                         </div>
                     </div>
-                    <div class="card-body p-0">
-                        <table class="table table-striped">
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-hover text-nowrap">
                             <thead>
                                 <tr>
+                                    <th>ID</th>
                                     <th>Nombre</th>
                                     <th>Productos</th>
-                                    <th>Estado</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($categories as $category)
                                     <tr>
+                                        <td>{{ $category->id }}</td>
                                         <td>{{ $category->name }}</td>
-                                        <td>{{ $category->products_count }}</td>
+                                        <td>{{ $category->products_count ?? 0 }}</td>
                                         <td>
-                                            @if($category->is_active)
-                                                <span class="badge bg-success">Activa</span>
-                                            @else
-                                                <span class="badge bg-danger">Inactiva</span>
-                                            @endif
+                                            <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="3" class="text-center">No hay categorías registradas</td>
+                                        <td colspan="4" class="text-center">No hay categorías registradas</td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
+                    <div class="card-footer text-right">
+                        <a href="{{ route('admin.categories.index') }}" class="btn btn-sm btn-link">Ver todas las categorías</a>
+                    </div>
                 </div>
             </div>
 
-            <!-- Últimos Productos -->
+            <!-- Tabla de Productos -->
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Últimos Productos</h3>
                         <div class="card-tools">
-                            <a href="{{ route('admin.products.index') }}" class="btn btn-sm btn-primary">
-                                Ver Todos <i class="fas fa-arrow-circle-right ml-1"></i>
+                            <a href="{{ route('admin.products.create') }}" class="btn btn-sm btn-success">
+                                <i class="fas fa-plus"></i> Nuevo Producto
                             </a>
                         </div>
                     </div>
-                    <div class="card-body p-0">
-                        <table class="table table-striped">
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-hover text-nowrap">
                             <thead>
                                 <tr>
+                                    <th>ID</th>
                                     <th>Nombre</th>
                                     <th>Categoría</th>
                                     <th>Precio</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($products as $product)
                                     <tr>
+                                        <td>{{ $product->id }}</td>
                                         <td>{{ $product->name }}</td>
                                         <td>{{ $product->category->name ?? 'Sin categoría' }}</td>
                                         <td>${{ number_format($product->price, 2) }}</td>
+                                        <td>
+                                            <a href="{{ route('admin.products.edit', $product) }}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="3" class="text-center">No hay productos registrados</td>
+                                        <td colspan="5" class="text-center">No hay productos registrados</td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
+                    <div class="card-footer text-right">
+                        <a href="{{ route('admin.products.index') }}" class="btn btn-sm btn-link">Ver todos los productos</a>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Últimas Páginas -->
+        <!-- Tabla de Páginas -->
         <div class="row mt-4">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Últimas Páginas</h3>
                         <div class="card-tools">
-                            <a href="{{ route('admin.pages.index') }}" class="btn btn-sm btn-primary">
-                                Ver Todas <i class="fas fa-arrow-circle-right ml-1"></i>
+                            <a href="{{ route('admin.pages.create') }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-plus"></i> Nueva Página
                             </a>
                         </div>
                     </div>
-                    <div class="card-body p-0">
-                        <table class="table table-striped">
+                    <div class="card-body table-responsive p-0">
+                        <table class="table table-hover text-nowrap">
                             <thead>
                                 <tr>
+                                    <th>ID</th>
                                     <th>Título</th>
                                     <th>Slug</th>
                                     <th>Estado</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($pages as $page)
                                     <tr>
+                                        <td>{{ $page->id }}</td>
                                         <td>{{ $page->title }}</td>
                                         <td>{{ $page->slug }}</td>
                                         <td>
-                                            @if($page->is_active)
-                                                <span class="badge bg-success">Activa</span>
-                                            @else
-                                                <span class="badge bg-secondary">Inactiva</span>
-                                            @endif
+                                            <span class="badge {{ $page->is_active ? 'bg-success' : 'bg-secondary' }}">
+                                                {{ $page->is_active ? 'Activo' : 'Inactivo' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <a href="{{ route('admin.pages.edit', $page) }}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="3" class="text-center">No hay páginas registradas</td>
+                                        <td colspan="5" class="text-center">No hay páginas registradas</td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
+                    </div>
+                    <div class="card-footer text-right">
+                        <a href="{{ route('admin.pages.index') }}" class="btn btn-sm btn-link">Ver todas las páginas</a>
                     </div>
                 </div>
             </div>
@@ -196,11 +219,32 @@
 
 @section('js')
     <script>
-        // Cerrar automáticamente las alertas después de 5 segundos
-        window.setTimeout(function() {
-            $(".alert").fadeTo(500, 0).slideUp(500, function(){
-                $(this).remove();
-            });
-        }, 5000);
+        $(document).ready(function() {
+            // Activar el menú lateral
+            $('body').addClass('sidebar-mini');
+            $('body').addClass('sidebar-collapse');
+            $('body').addClass('sidebar-open');
+            
+            // Inicializar tooltips
+            $('[data-toggle="tooltip"]').tooltip();
+        });
     </script>
 @stop
+
+@push('styles')
+<style>
+    .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .card-title {
+        font-weight: 600;
+    }
+    .card-text {
+        color: #6c757d;
+    }
+</style>
+@endpush

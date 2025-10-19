@@ -4,8 +4,6 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AdminController;
-
 
 // Rutas públicas
 use App\Models\Page;
@@ -17,6 +15,12 @@ Route::get('/', [HomeController::class, 'index'])->name('welcome');
 
 use App\Http\Controllers\PublicCategoryController;
 use App\Http\Controllers\CartController;
+
+
+// routes/api.php
+
+
+
 
 // Rutas del carrito
 Route::controller(CartController::class)->group(function () {
@@ -35,14 +39,36 @@ Route::controller(CartController::class)->group(function () {
 Route::controller(PublicCategoryController::class)->group(function () {
     Route::get('/vista-1', 'index')->name('vista-1');
     Route::get('/categoria/{categoryId}/productos', 'showProducts')->name('categoria.productos');
-    Route::get('/categoria/{category:slug}', 'show')->name('category.show');
+    Route::get('/producto/{productId}', 'showProduct')->name('producto.detalle');
 });
 
-// Product routes - Using route model binding with slug
-Route::get('/producto/{product:slug}', [App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
+// Ruta para la galería de imágenes (vista-4)
+Route::get('/galeria-imagenes', function () {
+    try {
+        // Conectar a la base de datos usando la clase personalizada
+        require_once app_path('Database/Conexion.php');
 
-// Fallback route for product URLs with ID (in case slug is missing)
-Route::get('/producto/id/{product}', [App\Http\Controllers\ProductController::class, 'showById'])->name('products.show.by.id');
+        $objConexion = new \App\Database\Conexion();
+
+        // Consultar productos con preferencias para la galería
+        $productos = $objConexion->consultar("SELECT id, name, description, price, image, category_id,
+            preferencia_uno, opciones_preferencia_uno, max_selecciones_uno,
+            preferencia_dos, opciones_preferencia_dos, max_selecciones_dos,
+            preferencia_tres, opciones_preferencia_tres, max_selecciones_tres
+            FROM products WHERE is_active = 1 ORDER BY name");
+
+        // Consultar categorías activas
+        $categorias = $objConexion->consultar("SELECT id, name, description, image FROM categories WHERE is_active = 1 ORDER BY name");
+
+    } catch (Exception $e) {
+        $productos = [];
+        $categorias = [];
+        // Log del error para debugging
+        \Log::error('Error en galería de imágenes: ' . $e->getMessage());
+    }
+
+    return view('vista-4', compact('productos', 'categorias'));
+})->name('galeria.imagenes');
 
 // Ruta para servir imágenes de productos
 Route::get('/images/products/{filename}', function ($filename) {
@@ -171,7 +197,7 @@ Route::get('/welcome', [\App\Http\Controllers\WelcomeController::class, 'index']
 
 // Rutas protegidas por autenticación
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Dashboard principal
+    // Redirigir dashboard a welcome para usuarios normales
     Route::get('/dashboard', function () {
         if (auth()->user()->hasRole('admin')) {
             return redirect()->route('admin.dashboard');
@@ -183,50 +209,65 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Rutas del panel de administración
+    Route::prefix('admin')->middleware(['auth', 'role:admin'])->group(function () {
+        // Dashboard de administración
+        Route::get('/dashboard', function () {
+            // Cargar categorías con el conteo de productos
+            $categories = \App\Models\Category::withCount('products')
+                ->latest()
+                ->take(5)
+                ->get();
+                
+            // Cargar productos con la categoría relacionada
+            $products = \App\Models\Product::with('category')
+                ->latest()
+                ->take(5)
+                ->get();
+                
+            // Cargar páginas
+            $pages = \App\Models\Page::latest()
+                ->take(5)
+                ->get();
+            
+            return view('admin.dashboard', compact('categories', 'products', 'pages'));
+        })->name('admin.dashboard');
+
+        // Rutas de categorías
+        Route::resource('categories', CategoryController::class)
+            ->names('admin.categories')
+            ->middleware('role:admin');
+        
+        // Rutas de productos
+        Route::resource('products', ProductController::class)
+            ->names('admin.products')
+            ->middleware('role:admin');
+        
+        // Ruta para ver productos por categoría
+        Route::get('categories/{category}/products', [CategoryController::class, 'products'])
+             ->name('admin.categories.products')
+             ->middleware('role:admin');
+        
+        // Rutas para la administración de páginas
+        Route::resource('pages', \App\Http\Controllers\Admin\PageController::class)
+             ->names('admin.pages')
+             ->except(['show'])
+             ->middleware('role:admin');
+             
+        // Ruta para actualización directa de páginas
+        Route::post('pages/direct-update/{page}', [\App\Http\Controllers\Admin\PageController::class, 'directUpdate'])
+             ->name('admin.pages.direct-update')
+             ->middleware('role:admin');
+
+        // Gestión de usuarios
+        Route::resource('users', \App\Http\Controllers\Admin\UserController::class)
+             ->names('admin.users')
+             ->middleware('role:admin');
+    });
 });
 
-// Rutas de administración
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'role:admin'])->group(function () {
-    // Dashboard de administración
-    Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('dashboard');
-    
-    // Rutas de recursos
-    Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class);
-    Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
-    Route::resource('pages', \App\Http\Controllers\Admin\PageController::class);
-    Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
-});
 
-// Ruta de contacto
 Route::get('/contacto', function () {
     return view('contact');
 })->name('contact');
-
-// Route for AJAX product filtering
-Route::get('/filter-products', [App\Http\Controllers\HomeController::class, 'filterProducts'])->name('products.filter');
-
-
-
-
-// Ruta para guardar pedido en archivo
-Route::post('/cart/save-order', [App\Http\Controllers\CartController::class, 'saveOrderToFile'])->name('cart.saveOrder');
-
-
-
-// Rutas de administración (opcional: agregar middleware de autenticación)
-Route::prefix('admin')->group(function () {
-    Route::get('/pedidos', [App\Http\Controllers\AdminController::class, 'showOrderLogs'])->name('admin.order-logs');
-});
-
-
-// Ruta para imprimir ticket térmico
-Route::get('/admin/pedidos/{id}/print', [App\Http\Controllers\AdminController::class, 'printOrderTicket'])->name('admin.print-ticket');
-
-
-Route::prefix('admin')->group(function () {
-    Route::get('/order-logs', [AdminController::class, 'showOrderLogs'])->name('admin.order-logs');
-    Route::get('/print-ticket/{orderId}', [AdminController::class, 'printOrderTicket'])->name('admin.print-ticket');
-    Route::get('/statistics', [AdminController::class, 'showStatistics'])->name('admin.statistics');
-    Route::get('/download-logs', [AdminController::class, 'downloadOrderLogs'])->name('admin.download-logs');
-    Route::delete('/clear-logs', [AdminController::class, 'clearOrderLogs'])->name('admin.clear-logs');
-});

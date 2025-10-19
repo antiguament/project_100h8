@@ -13,16 +13,11 @@ class CartController extends Controller
     {
         $cart = Cart::content();
         $total = Cart::total();
-        $itemCount = is_array($cart) ? count($cart) : 0;
         
         // Depuración
         \Log::info('Contenido del carrito en index:', ['cart' => $cart, 'total' => $total]);
         
-        return view('cart.index', [
-            'cart' => $cart,
-            'total' => $total,
-            'itemCount' => $itemCount
-        ]);
+        return view('cart.index', compact('cart', 'total'));
     }
 
     public function add(Request $request, $id)
@@ -242,62 +237,5 @@ class CartController extends Controller
             'success' => true,
             'redirect_url' => $whatsappUrl
         ]);
-    }
-    
-    /**
-     * Guardar pedido en archivo de log
-     */
-    public function saveOrderToFile(Request $request)
-    {
-        try {
-            // Obtener datos del request
-            $orderData = $request->all();
-            
-            // Crear el mensaje de log
-            $logMessage = "=== NUEVO PEDIDO ===\n";
-            $logMessage .= "Fecha: " . now()->format('Y-m-d H:i:s') . "\n";
-            $logMessage .= "Cliente: " . ($orderData['customer_name'] ?? 'No especificado') . "\n";
-            $logMessage .= "Teléfono: " . ($orderData['customer_phone'] ?? 'No especificado') . "\n";
-            $logMessage .= "Dirección: " . ($orderData['customer_address'] ?? 'No especificada') . "\n";
-            $logMessage .= "Método de envío: " . ($orderData['shipping_option'] ?? 'No seleccionado') . "\n";
-            $logMessage .= "Productos:\n";
-            
-            // Detalles de productos
-            $cart = Cart::content();
-            foreach ($cart as $id => $item) {
-                $logMessage .= "- " . $item['name'] . " (Cantidad: " . $item['quantity'] . ", Precio: $" . number_format($item['price'], 2) . ")\n";
-                
-                // Incluir preferencias si existen
-                if (!empty($item['preferences'])) {
-                    $prefs = is_string($item['preferences']) ? json_decode($item['preferences'], true) : $item['preferences'];
-                    foreach ($prefs as $key => $value) {
-                        $label = ucwords(str_replace('_', ' ', $key));
-                        $logMessage .= "  * " . $label . ": " . (is_array($value) ? implode(', ', $value) : $value) . "\n";
-                    }
-                }
-            }
-            
-            $logMessage .= "Subtotal: $" . number_format($orderData['subtotal'] ?? 0, 2) . "\n";
-            $logMessage .= "Envío: $" . number_format($orderData['shipping'] ?? 0, 2) . "\n";
-            $logMessage .= "Total: $" . number_format($orderData['total'] ?? 0, 2) . "\n";
-            $logMessage .= "====================\n\n";
-            
-            // Guardar en archivo
-            $filePath = storage_path('logs/pedidos.log');
-            
-            // Crear directorio si no existe
-            if (!file_exists(dirname($filePath))) {
-                mkdir(dirname($filePath), 0755, true);
-            }
-            
-            // Escribir en el archivo (modo append para añadir al final)
-            file_put_contents($filePath, $logMessage, FILE_APPEND | LOCK_EX);
-            
-            return response()->json(['success' => true, 'message' => 'Pedido guardado correctamente']);
-            
-        } catch (\Exception $e) {
-            \Log::error('Error al guardar pedido en archivo: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Error al guardar pedido'], 500);
-        }
     }
 }

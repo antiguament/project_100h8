@@ -1,524 +1,1058 @@
-@extends('layouts.app-custom')
 
-@section('title', $product->name . ' | ' . config('app.name'))
 
-@section('content')
-<div class="container py-5">
-    <!-- Botón de volver atrás -->
-    <a href="{{ route('categoria.productos', $product->category_id) }}" class="btn btn-outline-primary mb-4">
-        <i class="fas fa-arrow-left me-2"></i> Volver a {{ $product->category->name }}
-    </a>
 
-    <!-- Detalles del producto -->
-    <div class="row g-4">
-        <!-- Imagen del producto -->
-        <div class="col-lg-6">
-            <div class="product-image-container bg-light rounded-3 p-4 text-center">
-                @if($product->image_url)
-                    <img src="{{ $product->image_url }}" alt="{{ $product->name }}" 
-                         class="img-fluid rounded-3 shadow-sm" style="max-height: 400px; width: auto; max-width: 100%;">
-                @else
-                    <div class="d-flex align-items-center justify-content-center" style="height: 300px;">
-                        <i class="fas fa-box-open fa-5x text-muted"></i>
-                    </div>
-                @endif
-            </div>
-        </div>
 
-        <!-- Información del producto -->
-        <div class="col-lg-6">
-            <div class="product-details">
-                <!-- Categoría -->
-                <div class="mb-3">
-                    <span class="badge bg-primary bg-gradient">{{ $product->category->name }}</span>
+<x-layout meta-title="inicio" meta-description="home description">
+
+
+
+<br><br><br><br>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo $product->name; ?> | <?php echo config('app.name'); ?></title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --venice-blue: #0A2E36;
+            --venice-teal: #0D4D5A;
+            --venice-turquoise: #117A8A;
+            --venice-light: #14B8C6;
+            --venice-accent: #0EE4EB;
+            --venice-gold: #D4AF37;
+            --venice-gold-light: #F1E5AC;
+            --venice-canal: #00C2CB;
+            --light: #F0FDFA;
+            --shadow-teal: 0 4px 25px rgba(0, 194, 203, 0.25);
+            --shadow-gold: 0 4px 20px rgba(212, 175, 55, 0.3);
+            --glow: 0 0 18px rgba(0, 194, 203, 0.6);
+            --gold-glow: 0 0 12px rgba(212, 175, 55, 0.7);
+            --border-radius-lg: 20px;
+            --border-radius-sm: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--venice-blue) 0%, #081d21 100%);
+            color: var(--light);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: rgba(10, 46, 54, 0.95);
+            min-height: 100vh;
+            box-shadow: 0 0 80px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            padding-bottom: 80px;
+        }
+
+        .app-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 10% 20%, rgba(20, 184, 198, 0.1) 0%, transparent 40%),
+                       radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.08) 0%, transparent 40%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .app-header {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            max-width: 480px;
+            z-index: 50;
+            background: var(--venice-blue);
+            padding: 16px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+            border-bottom-left-radius: var(--border-radius-sm);
+            border-bottom-right-radius: var(--border-radius-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: var(--venice-gold-light);
+            font-weight: 700;
+            font-size: 1.8rem;
+            text-shadow: var(--gold-glow);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--venice-light), var(--venice-accent));
+            color: var(--venice-blue);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: 800;
+            font-size: 1.3rem;
+            box-shadow: var(--glow);
+        }
+
+        .gold-accent {
+            color: var(--venice-gold);
+            text-shadow: 0 0 5px rgba(212, 175, 55, 0.6);
+        }
+
+        .header-icons {
+            font-size: 1.3rem;
+        }
+
+        .header-icons i {
+            margin-left: 20px;
+            color: var(--venice-gold);
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .header-icons i:hover {
+            color: var(--venice-accent);
+        }
+
+        .main-content {
+            padding: 24px 16px 0;
+            z-index: 10;
+            position: relative;
+        }
+
+        .product-detail-container {
+            background: linear-gradient(145deg, rgba(13, 77, 90, 0.9), rgba(10, 46, 54, 0.95));
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-teal);
+            margin-bottom: 20px;
+        }
+
+        .product-image-section {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            overflow: hidden;
+        }
+
+        .product-image-section img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-info-section {
+            padding: 20px;
+        }
+
+        .product-category {
+            display: inline-block;
+            background: var(--venice-accent);
+            color: var(--venice-blue);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .product-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--venice-gold-light);
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+
+        .product-price {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--venice-accent);
+            text-shadow: 0 0 5px rgba(0, 194, 203, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .product-description {
+            color: var(--venice-light);
+            margin-bottom: 20px;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .quantity-section {
+            margin-bottom: 20px;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .quantity-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--venice-accent);
+            background: transparent;
+            color: var(--venice-accent);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .quantity-btn:hover {
+            background: var(--venice-accent);
+            color: var(--venice-blue);
+        }
+
+        .quantity-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--venice-light);
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .preferences-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 194, 203, 0.1);
+            border-radius: var(--border-radius-sm);
+            border: 1px solid rgba(0, 194, 203, 0.2);
+        }
+
+        .preferences-title {
+            color: var(--venice-accent);
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 0 0 3px rgba(0, 194, 203, 0.3);
+        }
+
+        .preference-group {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .preference-title {
+            color: var(--venice-gold-light);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .preference-options {
+            display: grid;
+            gap: 8px;
+        }
+
+        .preference-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preference-input {
+            accent-color: var(--venice-accent);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .preference-label {
+            color: var(--venice-light);
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            flex: 1;
+            background: linear-gradient(135deg, var(--venice-light), var(--venice-accent));
+            color: var(--venice-blue);
+            border: none;
+            padding: 15px;
+            border-radius: var(--border-radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: var(--venice-light);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .footer-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--venice-blue);
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+            border-top: 1px solid rgba(0, 194, 203, 0.2);
+            z-index: 60;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top-left-radius: var(--border-radius-lg);
+            border-top-right-radius: var(--border-radius-lg);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--venice-teal);
+            transition: color 0.3s ease;
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .nav-item i {
+            font-size: 1.5rem;
+            color: var(--venice-light);
+            transition: color 0.3s ease;
+        }
+
+        .nav-item span {
+            font-size: 0.7rem;
+            margin-top: 4px;
+            color: var(--venice-light);
+            font-weight: 600;
+        }
+
+        .nav-item.active i, .nav-item:hover i {
+            color: var(--venice-gold);
+            text-shadow: var(--gold-glow);
+        }
+
+        .nav-item.active span, .nav-item:hover span {
+            color: var(--venice-gold-light);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <a href="/" class="logo">
+                <div class="logo-icon">A</div>
+                <span>Alla<span class="gold-accent">letera</span></span>
+            </a>
+            <div class="header-icons">
+                <i class="fas fa-arrow-left" onclick="history.back()"></i>
+                <div class="cart-icon-container" onclick="showCart()" style="position: relative; cursor: pointer;">
+                    <i class="fas fa-shopping-cart" style="color: var(--venice-gold); font-size: 1.3rem;"></i>
+                    <span class="cart-counter" style="position: absolute; top: -8px; right: -8px; background: var(--venice-accent); color: var(--venice-blue); border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; display: none;">0</span>
                 </div>
-                
-                <!-- Nombre y precio -->
-                <h1 class="display-5 fw-bold mb-3">{{ $product->name }}</h1>
-                <div class="d-flex align-items-center mb-4">
-                    <span class="h2 fw-bold text-primary me-3">${{ number_format($product->price, 2) }}</span>
-                    @if($product->stock > 0)
-                        <span class="badge bg-success bg-opacity-10 text-success">
-                            <i class="fas fa-check-circle me-1"></i> En stock
-                        </span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Product Detail Container -->
+            <div class="product-detail-container fade-in">
+                <!-- Product Image -->
+                <div class="product-image-section">
+                    @if($product->image_url)
+                        <img src="{{ $product->image_url }}" alt="{{ $product->name }}">
                     @else
-                        <span class="badge bg-danger bg-opacity-10 text-danger">
-                            <i class="fas fa-times-circle me-1"></i> Agotado
-                        </span>
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-box-open" style="font-size: 4rem; color: #9ca3af;"></i>
+                        </div>
                     @endif
                 </div>
 
-                <!-- Descripción -->
-                <div class="mb-4">
-                    <h5 class="mb-2">Descripción</h5>
-                    <p class="text-muted">{{ $product->description ?? 'No hay descripción disponible para este producto.' }}</p>
-                </div>
+                <!-- Product Info -->
+                <div class="product-info-section">
+                    <!-- Category -->
+                    <div class="product-category">{{ $product->category->name }}</div>
 
-                <!-- Stock -->
-                <div class="mb-4">
-                    <p class="mb-2"><strong>Disponibilidad:</strong> 
-                        @if($product->stock > 0)
-                            <span class="text-success">En stock ({{ $product->stock }} unidades)</span>
-                        @else
-                            <span class="text-danger">Agotado</span>
-                        @endif
-                    </p>
-                </div>
+                    <!-- Name and Price -->
+                    <h1 class="product-name">{{ $product->name }}</h1>
+                    <div class="product-price">${{ number_format($product->price, 2) }}</div>
 
-                @php
-                    $preferences = [
-                        'uno' => [
-                            'titulo' => $product->preferencia_uno,
-                            'opciones' => $product->opciones_preferencia_uno ?? [],
-                            'max_selecciones' => $product->max_selecciones_uno ?? 1
-                        ],
-                        'dos' => [
-                            'titulo' => $product->preferencia_dos,
-                            'opciones' => $product->opciones_preferencia_dos ?? [],
-                            'max_selecciones' => $product->max_selecciones_dos ?? 1
-                        ],
-                        'tres' => [
-                            'titulo' => $product->preferencia_tres,
-                            'opciones' => $product->opciones_preferencia_tres ?? [],
-                            'max_selecciones' => $product->max_selecciones_tres ?? 1
-                        ]
-                    ];
-                @endphp
+                    <!-- Description -->
+                    <div class="product-description">
+                        {{ $product->description ?? 'No hay descripción disponible para este producto.' }}
+                    </div>
 
-                @if($product->preferencia_uno || $product->preferencia_dos || $product->preferencia_tres)
-                <div class="preferences-section mb-4">
-                    <h5 class="mb-3">Personaliza tu pedido</h5>
-                    <div class="row g-4">
-                        @foreach(['uno', 'dos', 'tres'] as $prefNum)
-                            @if(!empty($preferences[$prefNum]['titulo']) && count($preferences[$prefNum]['opciones']) > 0)
-                            <div class="col-12">
-                                <div class="card border-0 shadow-sm">
-                                    <div class="card-body">
-                                        <h6 class="card-title mb-3">
-                                            {{ $preferences[$prefNum]['titulo'] }}
-                                            <small class="text-muted">(Selecciona hasta {{ $preferences[$prefNum]['max_selecciones'] }})</small>
-                                        </h6>
-                                        <div class="preference-options" data-max-selections="{{ $preferences[$prefNum]['max_selecciones'] }}">
-                                            @foreach($preferences[$prefNum]['opciones'] as $index => $opcion)
-                                                @if(!empty(trim($opcion)))
-                                                <div class="form-check mb-2">
-                                                    <input class="form-check-input preference-option" 
-                                                           type="checkbox" 
-                                                           name="preferencia_{{ $prefNum }}[]" 
-                                                           value="{{ $opcion }}" 
-                                                           id="pref-{{ $prefNum }}-{{ $index }}"
+                    <!-- Quantity Section -->
+                    <div class="quantity-section">
+                        <h4 style="color: var(--venice-gold-light); margin-bottom: 10px; font-size: 1rem;">Cantidad</h4>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn" onclick="changeQuantity(-1)">-</button>
+                            <span class="quantity-display" id="quantity-display">1</span>
+                            <button class="quantity-btn" onclick="changeQuantity(1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Preferences Section -->
+                    @php
+                        $preferences = [
+                            'uno' => [
+                                'titulo' => $product->preferencia_uno,
+                                'opciones' => $product->opciones_preferencia_uno ?? [],
+                                'max_selecciones' => $product->max_selecciones_uno ?? 1
+                            ],
+                            'dos' => [
+                                'titulo' => $product->preferencia_dos,
+                                'opciones' => $product->opciones_preferencia_dos ?? [],
+                                'max_selecciones' => $product->max_selecciones_dos ?? 1
+                            ],
+                            'tres' => [
+                                'titulo' => $product->preferencia_tres,
+                                'opciones' => $product->opciones_preferencia_tres ?? [],
+                                'max_selecciones' => $product->max_selecciones_tres ?? 1
+                            ]
+                        ];
+                    @endphp
+
+                    @if($product->preferencia_uno || $product->preferencia_dos || $product->preferencia_tres)
+                    <div class="preferences-section">
+                        <h4 class="preferences-title">🍽️ Personaliza tu pedido</h4>
+                        <div style="display: grid; gap: 15px;">
+                            @foreach(['uno', 'dos', 'tres'] as $prefNum)
+                                @if(!empty($preferences[$prefNum]['titulo']) && count($preferences[$prefNum]['opciones']) > 0)
+                                <div class="preference-group">
+                                    <h5 class="preference-title">
+                                        {{ $preferences[$prefNum]['titulo'] }}
+                                        <small style="color: var(--venice-accent); font-size: 0.75rem;">
+                                            (Máx. {{ $preferences[$prefNum]['max_selecciones'] }})
+                                        </small>
+                                    </h5>
+                                    <div class="preference-options" data-max-selections="{{ $preferences[$prefNum]['max_selecciones'] }}">
+                                        @foreach($preferences[$prefNum]['opciones'] as $index => $opcion)
+                                            @if(!empty(trim($opcion)))
+                                            <div class="preference-option">
+                                                @if($preferences[$prefNum]['max_selecciones'] > 1)
+                                                    <!-- Checkbox para múltiples selecciones -->
+                                                    <input type="checkbox"
+                                                           class="preference-input preference-option"
+                                                           name="preferencia_{{ $prefNum }}_{{ $product->id }}[]"
+                                                           value="{{ $opcion }}"
+                                                           id="pref-{{ $prefNum }}-{{ $product->id }}-{{ $index }}"
                                                            data-pref="{{ $prefNum }}">
-                                                    <label class="form-check-label" for="pref-{{ $prefNum }}-{{ $index }}">
-                                                        {{ $opcion }}
-                                                    </label>
-                                                </div>
+                                                @else
+                                                    <!-- Radio button para selección única -->
+                                                    <input type="radio"
+                                                           class="preference-input"
+                                                           name="preference_{{ $prefNum }}_{{ $product->id }}"
+                                                           value="{{ $opcion }}"
+                                                           id="pref-{{ $prefNum }}-{{ $product->id }}-{{ $index }}"
+                                                           onchange="updateSelectedPreference('{{ $prefNum }}', {{ $product->id }}, '{{ $opcion }}')">
                                                 @endif
-                                            @endforeach
-                                        </div>
+                                                <label class="preference-label" for="pref-{{ $prefNum }}-{{ $product->id }}-{{ $index }}">
+                                                    {{ $opcion }}
+                                                </label>
+                                            </div>
+                                            @endif
+                                        @endforeach
                                     </div>
                                 </div>
-                            </div>
-                            @endif
-                        @endforeach
-                    </div>
-                </div>
-                @endif
-
-                <!-- Acciones -->
-                <form id="add-to-cart-form" class="w-100">
-                    @csrf
-                    <input type="hidden" name="product_id" value="{{ $product->id }}">
-                    <input type="hidden" name="quantity" value="1" class="quantity-input">
-                    
-                    <!-- Selector de cantidad -->
-                    <div class="d-flex flex-wrap gap-3 mb-4">
-                        <div class="quantity-selector d-flex align-items-center mb-2">
-                            <button type="button" class="btn btn-outline-secondary quantity-btn minus">-</button>
-                            <input type="number" class="form-control text-center quantity-display" value="1" min="1" max="{{ $product->stock }}" style="width: 70px;" readonly>
-                            <button type="button" class="btn btn-outline-secondary quantity-btn plus">+</button>
+                                @endif
+                            @endforeach
                         </div>
-                        
-                        <!-- Botón de añadir al carrito -->
-                        <button type="button" class="btn btn-primary px-4 mb-2 add-to-cart" 
-                                data-id="{{ $product->id }}"
-                                {{ $product->stock <= 0 ? 'disabled' : '' }}>
-                            <i class="fas fa-shopping-cart me-2"></i>
-                            {{ $product->stock > 0 ? 'Añadir al carrito' : 'Sin stock' }}
+                    </div>
+                    @endif
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn-primary" onclick="addToCartFromDetail({{ $product->id }}, '{{ $product->name }}', {{ $product->price }}, '{{ $product->image_url }}')">
+                            <i class="fas fa-shopping-cart"></i>
+                            Agregar al Carrito
                         </button>
-                    
-                        <!-- Botón de lista de deseos (opcional) -->
-                        <button type="button" class="btn btn-outline-secondary mb-2" title="Añadir a la lista de deseos">
-                            <i class="far fa-heart"></i>
+                        <button class="btn-secondary" onclick="history.back()">
+                            <i class="fas fa-arrow-left"></i>
+                            Volver
                         </button>
                     </div>
-                </form>
+                </div>
+            </div>
 
-                <!-- Stock disponible -->
-                <div class="mb-4">
-                    <h5 class="mb-3">Disponibilidad</h5>
-                    @if($product->stock > 0)
-                        <p class="mb-0">
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            {{ $product->stock }} unidades disponibles
-                        </p>
-                    @else
-                        <p class="mb-0">
-                            <i class="fas fa-times-circle text-danger me-2"></i>
-                            Producto temporalmente agotado
-                        </p>
-                    @endif
+            <!-- Shopping Cart Section (similar to tienda component) -->
+            <?php if(isset($_SESSION['miSesion1']) && count($_SESSION['miSesion1']) > 0): ?>
+            <div style="background: white; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); padding: 1.5rem; margin-top: 20px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                    <h2 style="font-size: 1.875rem; font-weight: bold; color: #1f2937;">
+                        <i class="fas fa-shopping-cart" style="color: #3b82f6; margin-right: 0.75rem;"></i>
+                        Carrito de Compras
+                    </h2>
+                    <a href="?vaciar=1" style="background: #ef4444; color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; text-decoration: none; transition: background 0.2s ease;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+                        <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>Vaciar Carrito
+                    </a>
                 </div>
 
-                <!-- Espaciador para mantener el diseño -->
-                <div class="mt-5"></div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                        <thead>
+                            <tr style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white;">
+                                <th style="padding: 0.75rem 1rem; text-align: left; border-radius: 0.75rem 0 0 0;">Producto</th>
+                                <th style="padding: 0.75rem 1rem; text-align: center;">Cantidad</th>
+                                <th style="padding: 0.75rem 1rem; text-align: center;">Precio</th>
+                                <th style="padding: 0.75rem 1rem; text-align: center;">Subtotal</th>
+                                <th style="padding: 0.75rem 1rem; text-align: center; border-radius: 0 0.75rem 0 0;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody style="border: 1px solid #e5e7eb;">
+                            <?php
+                            $total = 0;
+                            foreach ($_SESSION['miSesion1'] as $indice => $item):
+                                $subtotal = $item['cantidad'] * $item['valor'];
+                                $total += $subtotal;
+                            ?>
+                                <tr style="transition: background 0.2s ease;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
+                                    <td style="padding: 1rem;">
+                                        <div style="display: flex; align-items: center;">
+                                            <div>
+                                                <h4 style="font-weight: 600; color: #1f2937;"><?php echo $item['nombre']; ?></h4>
+                                                <?php if (isset($item['pedido_nota2']) && !empty($item['pedido_nota2'])): ?>
+                                                    <p style="font-size: 0.875rem; color: #6b7280;">Nota: <?php echo $item['pedido_nota2']; ?></p>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 1rem; text-align: center;">
+                                        <span style="background: #f3f4f6; padding: 0.25rem 0.75rem; border-radius: 9999px; font-weight: 600;"><?php echo $item['cantidad']; ?></span>
+                                    </td>
+                                    <td style="padding: 1rem; text-align: center; font-weight: 600; color: #1f2937;">
+                                        $<?php echo number_format($item['valor'], 0, ',', '.'); ?>
+                                    </td>
+                                    <td style="padding: 1rem; text-align: center; font-weight: bold; color: #2563eb;">
+                                        $<?php echo number_format($subtotal, 0, ',', '.'); ?>
+                                    </td>
+                                    <td style="padding: 1rem; text-align: center;">
+                                        <a href="?eliminar=<?php echo $indice; ?>"
+                                           style="background: #ef4444; color: white; padding: 0.5rem 0.75rem; border-radius: 0.5rem; text-decoration: none; transition: background 0.2s ease; display: inline-block;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                        <tfoot>
+                            <tr style="background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); font-weight: bold;">
+                                <td colspan="3" style="padding: 1rem; text-align: right; font-size: 1.125rem;">TOTAL:</td>
+                                <td style="padding: 1rem; text-align: center; font-size: 1.25rem; color: #16a34a;">
+                                    $<?php echo number_format($total, 0, ',', '.'); ?>
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem;">
+                    <a href="factura3.php"
+                       style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 0.75rem 2rem; border-radius: 0.5rem; text-decoration: none; transition: all 0.3s ease; font-weight: 600; transform: scale(1);" onmouseover="this.style.transform='scale(1.05)'; this.style.background='linear-gradient(135deg, #059669 0%, #047857 100%)'" onmouseout="this.style.transform='scale(1)'; this.style.background='linear-gradient(135deg, #10b981 0%, #059669 100%)'">
+                        <i class="fas fa-credit-card" style="margin-right: 0.5rem;"></i>Enviar Factura
+                    </a>
+                </div>
             </div>
-        </div>
+            <?php endif; ?>
+        </main>
+
+        <!-- Footer Navigation -->
+        <footer class="footer-nav">
+            <a href="/" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Inicio</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-box-open"></i>
+                <span>Pedidos</span>
+            </a>
+            <a href="#" class="nav-item active" onclick="showCart(); return false;">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Carrito</span>
+                <div class="cart-counter-nav" style="position: absolute; top: -5px; right: -5px; background: var(--venice-accent); color: var(--venice-blue); border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: bold; display: none;">0</div>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="fas fa-user"></i>
+                <span>Perfil</span>
+            </a>
+        </footer>
     </div>
 
-    <!-- Productos relacionados -->
-    @if($relatedProducts->count() > 0)
-        <div class="mt-5 pt-5">
-            <h3 class="mb-4">Productos relacionados</h3>
-            <div class="row g-4">
-                @foreach($relatedProducts as $relatedProduct)
-                    <div class="col-md-3">
-                        <div class="card h-100 border-0 shadow-sm hover-shadow transition-all">
-                            <a href="{{ route('producto.detalle', $relatedProduct->id) }}" class="text-decoration-none text-dark">
-                                <div class="product-card-image">
-                                    @if($relatedProduct->image_url)
-                                        <img src="{{ $relatedProduct->image_url }}" 
-                                             class="card-img-top" alt="{{ $relatedProduct->name }}">
-                                    @else
-                                        <div class="bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
-                                            <i class="fas fa-box-open fa-3x text-muted"></i>
+    <!-- JavaScript for functionality -->
+    <script>
+        // Quantity controls
+        let currentQuantity = 1;
+
+        function changeQuantity(change) {
+            const display = document.getElementById('quantity-display');
+            currentQuantity += change;
+
+            // Limit between 1 and 99
+            if (currentQuantity < 1) currentQuantity = 1;
+            if (currentQuantity > 99) currentQuantity = 99;
+
+            display.textContent = currentQuantity;
+        }
+
+        // Add to cart from product detail
+        function addToCartFromDetail(productId, name, price, imageUrl) {
+            // Get selected quantity
+            const quantity = currentQuantity;
+
+            // Get selected preferences
+            const selectedPreferencesFinal = {
+                preferencia1: getSelectedPreferences(productId, 'uno'),
+                preferencia2: getSelectedPreferences(productId, 'dos'),
+                preferencia3: getSelectedPreferences(productId, 'tres')
+            };
+
+            // Create product object
+            const product = {
+                id: productId,
+                nombre: name,
+                valor: price,
+                cantidad: quantity,
+                subtotal: price * quantity,
+                imagen: imageUrl,
+                id_categoria: 1, // You might want to get this from the product data
+                id_cliente: 1,
+                id_empleado: 25,
+                id_sucursal: 1,
+                pedido_numero: 360,
+                fecha: new Date().toISOString().slice(0, 19).replace('T', ' '),
+                pedido_nota2: '',
+                pedido_nota3: 'detalle',
+                ...selectedPreferencesFinal
+            };
+
+            // Add to cart
+            if (!window.cart) {
+                window.cart = [];
+            }
+
+            // Check if product already in cart
+            const existingProduct = window.cart.find(item => item.id === productId);
+            if (existingProduct) {
+                existingProduct.cantidad += quantity;
+                existingProduct.subtotal = existingProduct.cantidad * existingProduct.valor;
+            } else {
+                window.cart.push(product);
+            }
+
+            // Save to localStorage
+            localStorage.setItem('tienda_cart', JSON.stringify(window.cart));
+
+            // Update cart counter
+            updateCartCounter();
+
+            // Show success message
+            alert('Producto agregado al carrito exitosamente!');
+
+            console.log('Producto agregado al carrito:', product);
+            console.log('Carrito actual:', window.cart);
+        }
+
+        // Get selected preferences helper
+        function getSelectedPreferences(productId, prefType) {
+            const checkboxes = document.querySelectorAll(`input[name="preferencia_${prefType}_${productId}[]"]:checked`);
+            const radio = document.querySelector(`input[name="preference_${prefType}_${productId}"]:checked`);
+
+            if (checkboxes.length > 0) {
+                return Array.from(checkboxes).map(cb => cb.value).join(', ');
+            } else if (radio) {
+                return radio.value;
+            }
+
+            return '';
+        }
+
+        // Update cart counter
+        function updateCartCounter() {
+            const cartCounters = document.querySelectorAll('.cart-counter, .cart-count, .cart-counter-nav');
+            cartCounters.forEach(counter => {
+                if (window.cart) {
+                    const totalItems = window.cart.reduce((sum, item) => sum + item.cantidad, 0);
+                    counter.textContent = totalItems;
+                    counter.style.display = totalItems > 0 ? 'flex' : 'none';
+                }
+            });
+        }
+
+        // Show cart modal
+        function showCart() {
+            if (!window.cart || window.cart.length === 0) {
+                showEmptyCartMessage();
+                return;
+            }
+
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 2000;
+                animation: fadeIn 0.3s ease;
+            `;
+
+            const total = window.cart.reduce((sum, item) => sum + item.subtotal, 0);
+
+            modal.innerHTML = `
+                <div style="
+                    background: linear-gradient(145deg, var(--venice-teal), var(--venice-blue));
+                    border-radius: var(--border-radius-lg);
+                    max-width: 500px;
+                    width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    box-shadow: var(--shadow-teal), var(--glow);
+                    position: relative;
+                    animation: slideIn 0.3s ease;
+                ">
+                    <div style="
+                        position: absolute;
+                        top: 15px;
+                        right: 15px;
+                        width: 30px;
+                        height: 30px;
+                        background: var(--venice-accent);
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        color: var(--venice-blue);
+                        font-weight: bold;
+                        z-index: 2;
+                    " onclick="this.closest('.cart-modal-overlay').remove()">×</div>
+
+                    <div style="padding: 20px;">
+                        <h2 style="
+                            font-size: 1.8rem;
+                            color: var(--venice-gold-light);
+                            margin-bottom: 20px;
+                            text-align: center;
+                            font-weight: 700;
+                        ">Tu Carrito de Compras</h2>
+
+                        <div style="max-height: 400px; overflow-y: auto; margin-bottom: 20px;">
+                            ${window.cart.map((item, index) => `
+                                <div style="
+                                    display: flex;
+                                    align-items: center;
+                                    background: rgba(255, 255, 255, 0.1);
+                                    border-radius: 10px;
+                                    padding: 15px;
+                                    margin-bottom: 10px;
+                                    border: 1px solid rgba(0, 194, 203, 0.2);
+                                ">
+                                    ${item.imagen ? `<img src="${item.imagen}" alt="${item.nombre}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px; margin-right: 15px;">` : ''}
+                                    <div style="flex: 1;">
+                                        <h4 style="color: var(--venice-gold-light); margin: 0 0 5px 0; font-size: 1rem;">${item.nombre}</h4>
+                                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                            <span style="color: var(--venice-light); font-size: 0.9rem;">Cant: ${item.cantidad}</span>
+                                            <span style="color: var(--venice-accent); font-weight: bold;">$${item.subtotal.toLocaleString()}</span>
                                         </div>
-                                    @endif
+                                        ${item.preferencia1 || item.preferencia2 || item.preferencia3 ? `
+                                            <div style="margin-top: 5px; font-size: 0.8rem; color: var(--venice-gold);">
+                                                ${item.preferencia1 ? `• ${item.preferencia1}` : ''}
+                                                ${item.preferencia2 ? ` • ${item.preferencia2}` : ''}
+                                                ${item.preferencia3 ? ` • ${item.preferencia3}` : ''}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                    <button onclick="removeFromCart(${index})" style="
+                                        background: #ef4444;
+                                        color: white;
+                                        border: none;
+                                        border-radius: 50%;
+                                        width: 30px;
+                                        height: 30px;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        cursor: pointer;
+                                        margin-left: 10px;
+                                        font-size: 0.8rem;
+                                    " onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                 </div>
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ Str::limit($relatedProduct->name, 40) }}</h5>
-                                    <p class="card-text text-primary fw-bold mb-0">
-                                        ${{ number_format($relatedProduct->price, 2) }}
-                                    </p>
-                                </div>
-                            </a>
+                            `).join('')}
+                        </div>
+
+                        <div style="
+                            border-top: 2px solid var(--venice-accent);
+                            padding-top: 15px;
+                            margin-bottom: 20px;
+                        ">
+                            <div style="
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                font-size: 1.2rem;
+                                font-weight: bold;
+                            ">
+                                <span style="color: var(--venice-gold-light);">TOTAL:</span>
+                                <span style="color: var(--venice-accent); font-size: 1.4rem;">$${total.toLocaleString()}</span>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <button onclick="clearCart()" style="
+                                flex: 1;
+                                background: linear-gradient(135deg, #ef4444, #dc2626);
+                                color: white;
+                                border: none;
+                                padding: 12px;
+                                border-radius: var(--border-radius-sm);
+                                font-weight: 600;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                                <i class="fas fa-trash" style="margin-right: 8px;"></i>Vaciar Carrito
+                            </button>
+                            <button onclick="checkout()" style="
+                                flex: 1;
+                                background: linear-gradient(135deg, var(--venice-light), var(--venice-accent));
+                                color: var(--venice-blue);
+                                border: none;
+                                padding: 12px;
+                                border-radius: var(--border-radius-sm);
+                                font-weight: 600;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                            " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                                <i class="fas fa-credit-card" style="margin-right: 8px;"></i>Finalizar Compra
+                            </button>
                         </div>
                     </div>
-                @endforeach
-            </div>
-        </div>
-    @endif
-</div>
-@endsection
+                </div>
+            `;
 
-@push('styles')
-<style>
-    /* Estilos para el selector de cantidad */
-    .quantity-selector {
-        display: flex;
-        align-items: center;
-    }
-    
-    .quantity-btn {
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid #dee2e6;
-        background-color: #fff;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    
-    .quantity-btn:hover {
-        background-color: #f8f9fa;
-    }
-    
-    .quantity-input {
-        -moz-appearance: textfield;
-        text-align: center;
-        border-left: none;
-        border-right: none;
-    }
-    
-    .quantity-input::-webkit-outer-spin-button,
-    .quantity-input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-    .product-image-container {
-        border: 1px solid #e9ecef;
-        border-radius: 0.5rem;
-        overflow: hidden;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .product-details {
-        padding: 1.5rem;
-    }
-    
-    .hover-shadow {
-        transition: all 0.3s ease;
-    }
-    
-    .hover-shadow:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
-    }
-    
-    .product-card-image {
-        height: 180px;
-        overflow: hidden;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #f8f9fa;
-    }
-    
-    .product-card-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
-    
-    .product-card-image:hover img {
-        transform: scale(1.05);
-    }
-    
-    .btn-outline-primary {
-        transition: all 0.3s ease;
-    }
-    
-    .btn-outline-primary:hover {
-        transform: translateY(-2px);
-    }
-</style>
-@endpush
+            modal.className = 'cart-modal-overlay';
+            document.body.appendChild(modal);
 
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-$(document).ready(function() {
-    // Manejar el selector de cantidad
-    $('.quantity-btn').click(function() {
-        var container = $(this).closest('.quantity-selector');
-        var display = container.find('.quantity-display');
-        var hiddenInput = container.siblings('input[name="quantity"]');
-        var currentVal = parseInt(display.val());
-        var max = parseInt(display.attr('max'));
-        
-        if ($(this).hasClass('plus') && currentVal < max) {
-            display.val(currentVal + 1);
-            hiddenInput.val(currentVal + 1);
-        } else if ($(this).hasClass('minus') && currentVal > 1) {
-            display.val(currentVal - 1);
-            hiddenInput.val(currentVal - 1);
-        }
-    });
-    
-    // Validar entrada manual
-    $('.quantity-input').on('change', function() {
-        var value = parseInt($(this).val());
-        var max = parseInt($(this).attr('max'));
-        var min = parseInt($(this).attr('min'));
-        
-        if (value > max) {
-            $(this).val(max);
-        } else if (value < min) {
-            $(this).val(min);
-        } else if (isNaN(value)) {
-            $(this).val(min);
-        }
-    });
-    
-    // Manejar la selección de opciones de preferencia
-    $('.preference-option').on('change', function() {
-        const prefNum = $(this).data('pref');
-        const maxSelections = parseInt($(this).closest('.preference-options').data('max-selections'));
-        const selectedCount = $(`input[name="preferencia_${prefNum}[]"]:checked`).length;
-        
-        // Si se supera el máximo de selecciones, desmarcar el último seleccionado
-        if (selectedCount > maxSelections) {
-            $(this).prop('checked', false);
-            
-            // Mostrar mensaje al usuario
-            Swal.fire({
-                icon: 'info',
-                title: 'Límite de selecciones',
-                text: `Solo puedes seleccionar hasta ${maxSelections} opción(es) para esta preferencia`,
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000
-            });
-        }
-    });
-    
-    // Manejar el botón de añadir al carrito
-    $('.add-to-cart').click(function(e) {
-        e.preventDefault();
-        
-        const button = $(this);
-        const form = $('#add-to-cart-form');
-        const formData = new FormData(form[0]);
-        
-        // Validar preferencias seleccionadas
-        let hasPreferenceError = false;
-        
-        // Para cada grupo de preferencias
-        $('.preference-options').each(function() {
-            const prefNum = $(this).find('.preference-option').first().data('pref');
-            const selectedOptions = $(`input[name="preferencia_${prefNum}[]"]:checked`);
-            const minSelections = 1; // Mínimo 1 selección requerida
-            const maxSelections = parseInt($(this).data('max-selections'));
-            
-            // Verificar si se ha seleccionado al menos una opción
-            if (selectedOptions.length < minSelections) {
-                const prefTitle = $(`h6:contains('${prefNum}')`).text().trim();
-                
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Selección requerida',
-                    text: `Por favor selecciona al menos una opción para ${$(this).closest('.card').find('.card-title').text().split('(')[0].trim()}`,
-                    confirmButtonText: 'Entendido'
-                });
-                
-                hasPreferenceError = true;
-                return false; // Salir del bucle each
-            }
-            
-            // Verificar si se excede el máximo de selecciones
-            if (selectedOptions.length > maxSelections) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Demasiadas selecciones',
-                    text: `Solo puedes seleccionar hasta ${maxSelections} opción(es) para esta preferencia`,
-                    confirmButtonText: 'Entendido'
-                });
-                
-                hasPreferenceError = true;
-                return false; // Salir del bucle each
-            }
-            
-            // Agregar las opciones seleccionadas al formData
-            const selectedValues = [];
-            selectedOptions.each(function() {
-                selectedValues.push($(this).val());
-            });
-            
-            // Agregar las opciones seleccionadas como un array
-            formData.delete(`preferencia_${prefNum}[]`); // Eliminar entradas anteriores
-            selectedValues.forEach(value => {
-                formData.append(`preferencia_${prefNum}[]`, value);
-            });
-        });
-        
-        // Si hay errores de validación, no continuar
-        if (hasPreferenceError) {
-            return false;
-        }
-        
-        // Mostrar loading
-        button.prop('disabled', true);
-        button.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Añadiendo...');
-        
-        // Obtener el ID del producto
-        const productId = $('input[name="product_id"]').val();
-        
-        // Enviar la solicitud AJAX
-        $.ajax({
-            url: `/cart/add/${productId}`,
-            method: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(response) {
-                // Actualizar el contador del carrito
-                if (typeof updateCartCount === 'function') {
-                    updateCartCount(response.cart_count || response.cartCount);
-                } else if (response.cart_count) {
-                    $('.cart-count').text(response.cart_count);
-                }
-                
-                // Mostrar notificación de éxito
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Producto añadido!',
-                    text: response.message || 'El producto se ha añadido a tu carrito',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-                
-                // Resetear el formulario
-                form.trigger('reset');
-                $('.quantity-display').val(1);
-                $('.quantity-input').val(1);
-                $('.preference-option').prop('checked', false);
-            },
-            error: function(xhr) {
-                let errorMessage = 'Ha ocurrido un error al agregar el producto al carrito';
-                
-                if (xhr.status === 422) {
-                    const errors = xhr.responseJSON.errors;
-                    errorMessage = Object.values(errors)[0][0];
-                } else if (xhr.status === 401) {
-                    errorMessage = 'Debes iniciar sesión para agregar productos al carrito';
-                    window.location.href = '{{ route('login') }}';
-                    return;
-                } else if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                }
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: errorMessage,
-                    confirmButtonText: 'Entendido'
-                });
-            },
-            complete: function() {
-                // Restaurar el botón
-                button.prop('disabled', false);
-                button.html('<i class="fas fa-shopping-cart me-2"></i> Añadir al carrito');
-            }
-        });
-    });
-});
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inicializar tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-        
-        // Contador de cantidad
-        const minusBtn = document.querySelector('.btn-minus');
-        const plusBtn = document.querySelector('.btn-plus');
-        const quantityInput = document.querySelector('.quantity-input');
-        
-        if (minusBtn && plusBtn && quantityInput) {
-            minusBtn.addEventListener('click', function() {
-                let value = parseInt(quantityInput.value);
-                if (value > 1) {
-                    quantityInput.value = value - 1;
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
                 }
             });
-            
-            plusBtn.addEventListener('click', function() {
-                let value = parseInt(quantityInput.value);
-                quantityInput.value = value + 1;
+
+            document.addEventListener('keydown', function closeModal(e) {
+                if (e.key === 'Escape') {
+                    modal.remove();
+                    document.removeEventListener('keydown', closeModal);
+                }
             });
         }
-    });
-</script>
-@endpush
+
+        // Show empty cart message
+        function showEmptyCartMessage() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 2000;
+                animation: fadeIn 0.3s ease;
+            `;
+
+            modal.innerHTML = `
+                <div style="
+                    background: linear-gradient(145deg, var(--venice-teal), var(--venice-blue));
+                    border-radius: var(--border-radius-lg);
+                    max-width: 400px;
+                    width: 90%;
+                    padding: 30px;
+                    text-align: center;
+                    box-shadow: var(--shadow-teal), var(--glow);
+                    animation: slideIn 0.3s ease;
+                ">
+                    <i class="fas fa-shopping-cart" style="font-size: 4rem; color: var(--venice-gold); margin-bottom: 20px;"></i>
+                    <h3 style="color: var(--venice-gold-light); margin-bottom: 15px; font-size: 1.5rem;">Tu carrito está vacío</h3>
+                    <p style="color: var(--venice-light); margin-bottom: 25px; opacity: 0.8;">¡Agrega algunos productos deliciosos para comenzar!</p>
+                    <button onclick="this.closest('.cart-modal-overlay').remove()" style="
+                        background: linear-gradient(135deg, var(--venice-light), var(--venice-accent));
+                        color: var(--venice-blue);
+                        border: none;
+                        padding: 12px 24px;
+                        border-radius: var(--border-radius-sm);
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>Continuar Comprando
+                    </button>
+                </div>
+            `;
+
+            modal.className = 'cart-modal-overlay';
+            document.body.appendChild(modal);
+
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+        }
+
+        // Remove from cart
+        function removeFromCart(index) {
+            if (window.cart && window.cart[index]) {
+                window.cart.splice(index, 1);
+                localStorage.setItem('tienda_cart', JSON.stringify(window.cart));
+                updateCartCounter();
+
+                const modal = document.querySelector('.cart-modal-overlay');
+                if (modal) {
+                    modal.remove();
+                    showCart();
+                }
+
+                console.log('Producto removido del carrito. Carrito actual:', window.cart);
+            }
+        }
+
+        // Clear cart
+        function clearCart() {
+            window.cart = [];
+            localStorage.removeItem('tienda_cart');
+            updateCartCounter();
+
+            const modal = document.querySelector('.cart-modal-overlay');
+            if (modal) {
+                modal.remove();
+                showEmptyCartMessage();
+            }
+
+            console.log('Carrito vaciado');
+        }
+
+        // Checkout
+        function checkout() {
+            alert('Funcionalidad de checkout próximamente. Total: $' + window.cart.reduce((sum, item) => sum + item.subtotal, 0).toLocaleString());
+        }
+
+        // Handle preference validation
+        function handlePreferenceValidation() {
+            document.addEventListener('change', function(e) {
+                if (e.target.classList.contains('preference-option')) {
+                    const prefType = e.target.getAttribute('data-pref');
+                    const productId = e.target.name.match(/\d+/)[0];
+                    const maxSelections = parseInt(e.target.closest('.preference-options').getAttribute('data-max-selections'));
+
+                    if (maxSelections > 1) {
+                        const checkedBoxes = document.querySelectorAll(`input[name="preferencia_${prefType}_${productId}[]"]:checked`);
+
+                        if (checkedBoxes.length > maxSelections) {
+                            e.target.checked = false;
+                            alert(`Solo puedes seleccionar hasta ${maxSelections} opción(es) para esta preferencia`);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            handlePreferenceValidation();
+
+            // Load cart from localStorage
+            const savedCart = localStorage.getItem('tienda_cart');
+            if (savedCart) {
+                window.cart = JSON.parse(savedCart);
+                updateCartCounter();
+            }
+        });
+    </script>
+</body>
+</html>
+  
+
+
+
+
+
+
+</x-layout>

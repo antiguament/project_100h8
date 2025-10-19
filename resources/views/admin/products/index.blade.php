@@ -31,33 +31,6 @@
 
     <div class="card">
         <div class="card-body">
-            @isset($categories)
-                <form method="GET" action="{{ route('admin.products.index') }}" class="mb-3">
-                    <div class="form-row align-items-end">
-                        <div class="col-md-6">
-                            <label for="category_id">Filtrar por categoría</label>
-                            <select name="category_id" id="category_id" class="form-control">
-                                <option value="">Todas las categorías</option>
-                                @foreach($categories as $cat)
-                                    <option value="{{ $cat->id }}" 
-                                        @if( (isset($category) && $category->id == $cat->id) || (request('category_id') == $cat->id) ) selected @endif>
-                                        {{ $cat->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6 mt-2 mt-md-0">
-                            <button type="submit" class="btn btn-primary mr-2">
-                                <i class="fas fa-filter"></i> Aplicar filtro
-                            </button>
-                            <a href="{{ route('admin.products.index') }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Limpiar
-                            </a>
-                        </div>
-                    </div>
-                </form>
-            @endisset
-
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
@@ -91,7 +64,7 @@
                                     @endif
                                 </td>
                                 <td>{{ $product->name }}</td>
-                                <td>{{ optional($product->category)->name ?? '-' }}</td>
+                                <td>{{ $product->category->name }}</td>
                                 <td>${{ number_format($product->price, 2) }}</td>
                                 <td>{{ $product->stock }}</td>
                                 <td>{{ $product->preferencia_uno ?? '-' }}</td>
@@ -128,7 +101,7 @@
             </div>
             
             <div class="mt-4">
-                {{ $products->appends(request()->query())->links() }}
+                {{ $products->links() }}
             </div>
         </div>
     </div>

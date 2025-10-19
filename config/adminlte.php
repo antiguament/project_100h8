@@ -402,24 +402,11 @@ return [
                 ],
             ],
         ],
-
-        [
-            'text' => 'FACTURACION',
-            'icon' => 'fas fa-fw fa-user',
-            'submenu' => [
-                [
-                    'text' => 'Pedidos',
-                    'url' => '/admin/pedidos',
-                    'icon' => 'fas fa-fw fa-user-edit',
-                ],
-               
-            ],
-        ],
         
         // Menú de la Tienda (visible para todos los usuarios autenticados)
         [
             'text' => 'Tienda',
-            'url' => '/',
+            'url' => '/vista-1',
             'icon' => 'fas fa-fw fa-shopping-cart',
             'active' => ['vista-1*'],
         ],

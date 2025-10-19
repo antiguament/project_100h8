@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Category extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -36,6 +37,36 @@ class Category extends Model
     ];
 
     /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($category) {
+            $category->slug = Str::slug($category->name);
+            // Ensure slug is unique by appending a number if necessary
+            $originalSlug = $category->slug;
+            $count = 1;
+            while (static::where('slug', $category->slug)->exists()) {
+                $category->slug = $originalSlug . '-' . $count;
+                $count++;
+            }
+        });
+
+        static::updating(function ($category) {
+            $category->slug = Str::slug($category->name);
+            // Ensure slug is unique
+            $originalSlug = $category->slug;
+            $count = 1;
+            while (static::where('slug', $category->slug)->where('id', '!=', $category->id)->exists()) {
+                $category->slug = $originalSlug . '-' . $count;
+                $count++;
+            }
+        });
+    }
+
+    /**
      * Get the route key for the model.
      *
      * @return string
@@ -46,19 +77,14 @@ class Category extends Model
     }
 
     /**
-     * Boot the model.
+     * Scope for active categories.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
      */
-    protected static function boot()
+    public function scopeActive($query)
     {
-        parent::boot();
-
-        static::creating(function ($category) {
-            $category->slug = Str::slug($category->name);
-        });
-
-        static::updating(function ($category) {
-            $category->slug = Str::slug($category->name);
-        });
+        return $query->where('is_active', true);
     }
 
     /**
@@ -90,10 +116,17 @@ class Category extends Model
             return $this->image;
         }
 
-        // Get just the filename from the path
-        $filename = basename($this->image);
-        
-        // Use the direct route to serve the image
-        return url('/images/categories/' . $filename);
+        // For local images, use asset() to point to storage
+        return asset('storage/' . $this->image);
+    }
+
+    /**
+     * Get the count of active products in this category.
+     *
+     * @return int
+     */
+    public function getActiveProductsCountAttribute()
+    {
+        return $this->products()->where('is_active', true)->count();
     }
 }

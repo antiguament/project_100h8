@@ -20,24 +20,20 @@ class ProductController extends Controller
     {
         $query = Product::with('category');
         
-        // Obtener todas las categorías para el selector
-        $categories = Category::orderBy('name')->get();
-        
-        // Filtrar por categoría si se proporciona y no está vacía
-        if ($request->has('category_id') && $request->filled('category_id')) {
+        // Filtrar por categoría si se proporciona
+        if ($request->has('category_id')) {
             $category = Category::findOrFail($request->category_id);
             $query->where('category_id', $category->id);
             
             return view('admin.products.index', [
                 'products' => $query->latest()->paginate(10),
                 'category' => $category,
-                'title' => "Productos en la categoría: {$category->name}",
-                'categories' => $categories,
+                'title' => "Productos en la categoría: {$category->name}"
             ]);
         }
         
         $products = $query->latest()->paginate(10);
-        return view('admin.products.index', compact('products', 'categories'));
+        return view('admin.products.index', compact('products'));
     }
 
     /**

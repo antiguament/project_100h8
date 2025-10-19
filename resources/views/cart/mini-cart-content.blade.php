@@ -27,18 +27,13 @@
                         
                         <!-- Mostrar preferencias si existen -->
                         @if(!empty($item['preferences']))
-                            <div class="preferences-mini bg-light rounded p-2 mb-2" style="font-size: 0.85rem;">
-                                <div class="d-flex align-items-center mb-1">
-                                    <i class="fas fa-tags text-primary me-1" style="font-size: 0.8rem;"></i>
-                                    <small class="fw-medium text-primary">Preferencias:</small>
-                                </div>
+                            <div class="mb-2">
                                 @foreach($item['preferences'] as $key => $value)
                                     @if(!empty($value))
-                                        <div class="preference-item d-flex align-items-center mb-1">
-                                            <i class="fas fa-check-circle text-success me-1" style="font-size: 0.7rem;"></i>
+                                        <div class="preference-item">
                                             <small class="text-muted">
-                                                {{ ucfirst(str_replace('_', ' ', $key)) }}:
-                                                <span class="text-dark fw-medium ms-1">
+                                                {{ ucfirst(str_replace('_', ' ', $key)) }}: 
+                                                <span class="text-dark fw-bold">
                                                     @if(is_array($value))
                                                         {{ implode(', ', $value) }}
                                                     @else
@@ -51,8 +46,6 @@
                                 @endforeach
                             </div>
                         @endif
-                        
-
                         
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="cart-item-quantity">

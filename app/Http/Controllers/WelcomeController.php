@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Category;
 
 class WelcomeController extends Controller
 {
@@ -21,11 +20,6 @@ class WelcomeController extends Controller
         $user->last_login_at = now();
         $user->save();
         
-        // Obtener categorías activas ordenadas por nombre
-        $categories = Category::where('is_active', true)
-            ->orderBy('name')
-            ->get();
-        
-        return view('welcome', compact('user', 'categories'));
+        return view('welcome-user', compact('user'));
     }
 }

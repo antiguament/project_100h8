@@ -1,10 +1,8 @@
 @extends('layouts.app-custom')
 
-@section('title', 'Título de la página')
+@section('title', 'Catálogo de Categorías')
 
 @section('content')
-    <!-- Tu contenido aquí -->
-
 <!-- Hero Section -->
 <section class="hero-section">
     <div class="container">
@@ -28,60 +26,9 @@
     </div>
 </section>
 
-<!-- Categories Section -->
-<div class="container">
-    <div class="section-header">
-        <h2 class="section-title">Nuestras Categorías</h2>
-        <p class="section-subtitle">Explora nuestra amplia selección de categorías cuidadosamente seleccionadas para ti</p>
-    </div>
-    
-    @if($categories->count() > 0)
-        <div class="category-grid">
-            @foreach($categories as $category)
-                <div class="category-card">
-                    <button class="category-btn" onclick="window.location.href='{{ route('categoria.productos', $category->id) }}'">
-                        <div class="category-icon">
-                            @if($category->image)
-                                <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" class="category-image">
-                            @else
-                                @php
-                                    // Diferentes iconos según el índice para variedad
-                                    $icons = ['fa-box', 'fa-tshirt', 'fa-laptop', 'fa-headphones', 'fa-home', 'fa-book', 'fa-futbol', 'fa-couch'];
-                                    $icon = $icons[$loop->index % count($icons)] ?? 'fa-box';
-                                @endphp
-                                <i class="fas {{ $icon }}"></i>
-                            @endif
-                        </div>
-                        <h3 class="category-title">{{ $category->name }}</h3>
-                        @if($category->description)
-                            <p class="category-desc">{{ $category->description }}</p>
-                        @else
-                            <p class="category-desc">Explora nuestra selección de productos en esta categoría.</p>
-                        @endif
-                        <span class="category-link">
-                            Ver productos <i class="fas fa-arrow-right"></i>
-                        </span>
-                    </button>
-                </div>
-            @endforeach
-        </div>
-    @else
-        <div class="no-categories">
-            <i class="fas fa-inbox"></i>
-            <h3>No hay categorías disponibles</h3>
-            <p>Lo sentimos, actualmente no hay categorías disponibles. Por favor, vuelve más tarde.</p>
-        </div>
-    @endif
-</div>
-
-
-
-
-
+<!-- Componente de Categorías -->
+<x-categorias :categories="$categories" />
 @endsection
-
-
-
 
 @push('styles')
 <style>
@@ -389,23 +336,10 @@
 </style>
 @endpush
 
-
-
-
-
 @push('scripts')
-    <script>
-        // Scripts específicos de la página
-        function pageInit() {
-            // Código que se ejecutará cuando la página esté lista
-        }
-    </script>
-
-
 <!-- Font Awesome -->
 <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
-<!-- Smooth scrolling -->
 <script>
     // Suavizar el desplazamiento al hacer clic en enlaces
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -438,6 +372,4 @@
         });
     });
 </script>
-
-
 @endpush

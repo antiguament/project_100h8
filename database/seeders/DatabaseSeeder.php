@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             RolesTableSeeder::class,  // Primero creamos los roles
             CategorySeeder::class,    // Luego las categorías
             ProductSeeder::class,     // Después los productos
+            PreferencesSeeder::class, // Luego las preferencias de productos
             PageSeeder::class,        // Y finalmente las páginas
         ]);
     }
