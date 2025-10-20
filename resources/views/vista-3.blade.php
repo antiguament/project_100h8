@@ -1009,9 +1009,341 @@
             console.log('Carrito vaciado');
         }
 
-        // Checkout
+        // Función para mostrar formulario de entrega
+        function showDeliveryForm() {
+            if (!window.cart || window.cart.length === 0) {
+                alert('Tu carrito está vacío');
+                return;
+            }
+
+            const total = window.cart.reduce((sum, item) => sum + item.subtotal, 0);
+
+            // Crear modal del formulario de entrega
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 2000;
+                animation: fadeIn 0.3s ease;
+            `;
+
+            modal.innerHTML = `
+                <div style="
+                    background: linear-gradient(145deg, var(--venice-teal), var(--venice-blue));
+                    border-radius: var(--border-radius-lg);
+                    max-width: 500px;
+                    width: 90%;
+                    max-height: 90vh;
+                    overflow-y: auto;
+                    box-shadow: var(--shadow-teal), var(--glow);
+                    position: relative;
+                    animation: slideIn 0.3s ease;
+                ">
+                    <div style="
+                        position: absolute;
+                        top: 15px;
+                        right: 15px;
+                        width: 30px;
+                        height: 30px;
+                        background: var(--venice-accent);
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        color: var(--venice-blue);
+                        font-weight: bold;
+                        z-index: 2;
+                    " onclick="this.closest('.delivery-modal-overlay').remove()">×</div>
+
+                    <div style="padding: 20px;">
+                        <h2 style="
+                            font-size: 1.8rem;
+                            color: var(--venice-gold-light);
+                            margin-bottom: 20px;
+                            text-align: center;
+                            font-weight: 700;
+                        ">📋 Datos de Entrega</h2>
+
+                        <form id="delivery-form" style="display: grid; gap: 20px;">
+                            <div>
+                                <label style="color: var(--venice-gold-light); font-weight: 600; display: block; margin-bottom: 8px;">👤 Nombre Completo *</label>
+                                <input type="text" id="customer-name" required style="
+                                    width: 100%;
+                                    padding: 12px;
+                                    border: 2px solid rgba(0, 194, 203, 0.3);
+                                    border-radius: var(--border-radius-sm);
+                                    background: rgba(255, 255, 255, 0.1);
+                                    color: var(--venice-light);
+                                    font-size: 1rem;
+                                    outline: none;
+                                    transition: border-color 0.3s ease;
+                                " placeholder="Ingresa tu nombre completo">
+                            </div>
+
+                            <div>
+                                <label style="color: var(--venice-gold-light); font-weight: 600; display: block; margin-bottom: 8px;">📞 Teléfono de Contacto *</label>
+                                <input type="tel" id="customer-phone" required style="
+                                    width: 100%;
+                                    padding: 12px;
+                                    border: 2px solid rgba(0, 194, 203, 0.3);
+                                    border-radius: var(--border-radius-sm);
+                                    background: rgba(255, 255, 255, 0.1);
+                                    color: var(--venice-light);
+                                    font-size: 1rem;
+                                    outline: none;
+                                    transition: border-color 0.3s ease;
+                                " placeholder="Ej: +57 300 123 4567">
+                            </div>
+
+                            <div>
+                                <label style="color: var(--venice-gold-light); font-weight: 600; display: block; margin-bottom: 8px;">📍 Dirección de Entrega *</label>
+                                <textarea id="customer-address" required rows="3" style="
+                                    width: 100%;
+                                    padding: 12px;
+                                    border: 2px solid rgba(0, 194, 203, 0.3);
+                                    border-radius: var(--border-radius-sm);
+                                    background: rgba(255, 255, 255, 0.1);
+                                    color: var(--venice-light);
+                                    font-size: 1rem;
+                                    outline: none;
+                                    transition: border-color 0.3s ease;
+                                    resize: vertical;
+                                " placeholder="Ingresa tu dirección completa"></textarea>
+                            </div>
+
+                            <div>
+                                <label style="color: var(--venice-gold-light); font-weight: 600; display: block; margin-bottom: 8px;">💳 Método de Pago</label>
+                                <select id="payment-method" style="
+                                    width: 100%;
+                                    padding: 12px;
+                                    border: 2px solid rgba(0, 194, 203, 0.3);
+                                    border-radius: var(--border-radius-sm);
+                                    background: rgba(255, 255, 255, 0.1);
+                                    color: var(--venice-light);
+                                    font-size: 1rem;
+                                    outline: none;
+                                    transition: border-color 0.3s ease;
+                                ">
+                                    <option value="efectivo" style="background: var(--venice-blue); color: var(--venice-light);">💵 Efectivo</option>
+                                    <option value="transferencia" style="background: var(--venice-blue); color: var(--venice-light);">🏦 Transferencia Bancaria</option>
+                                    <option value="tarjeta" style="background: var(--venice-blue); color: var(--venice-light);">💳 Tarjeta de Crédito/Débito</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style="color: var(--venice-gold-light); font-weight: 600; display: block; margin-bottom: 8px;">📝 Notas Adicionales</label>
+                                <textarea id="order-notes" rows="2" style="
+                                    width: 100%;
+                                    padding: 12px;
+                                    border: 2px solid rgba(0, 194, 203, 0.3);
+                                    border-radius: var(--border-radius-sm);
+                                    background: rgba(255, 255, 255, 0.1);
+                                    color: var(--venice-light);
+                                    font-size: 1rem;
+                                    outline: none;
+                                    transition: border-color 0.3s ease;
+                                    resize: vertical;
+                                " placeholder="Instrucciones especiales, referencias, etc."></textarea>
+                            </div>
+
+                            <!-- Resumen del pedido -->
+                            <div style="
+                                background: rgba(0, 194, 203, 0.1);
+                                border: 1px solid rgba(0, 194, 203, 0.3);
+                                border-radius: var(--border-radius-sm);
+                                padding: 15px;
+                            ">
+                                <h3 style="color: var(--venice-accent); margin-bottom: 10px; font-size: 1.1rem;">🛒 Resumen del Pedido</h3>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                    <span style="color: var(--venice-light);">Productos:</span>
+                                    <span style="color: var(--venice-gold-light); font-weight: 600;">${window.cart.length} items</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; font-size: 1.2rem; font-weight: bold;">
+                                    <span style="color: var(--venice-gold-light);">Total a Pagar:</span>
+                                    <span style="color: var(--venice-accent); font-size: 1.4rem;">$${total.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </form>
+
+                        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 25px;">
+                            <button onclick="this.closest('.delivery-modal-overlay').remove()" style="
+                                background: rgba(255,255,255,0.1);
+                                color: var(--venice-light);
+                                border: 1px solid rgba(255,255,255,0.2);
+                                padding: 12px 20px;
+                                border-radius: var(--border-radius-sm);
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                                font-size: 1rem;
+                            " onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                                <i class="fas fa-arrow-left" style="margin-right: 8px;"></i>Regresar
+                            </button>
+                            <button onclick="sendToWhatsApp()" style="
+                                background: linear-gradient(135deg, var(--venice-accent), var(--venice-light));
+                                color: var(--venice-blue);
+                                border: none;
+                                padding: 12px 24px;
+                                border-radius: var(--border-radius-sm);
+                                font-weight: 700;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                                font-size: 1rem;
+                                flex: 1;
+                            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                <i class="fab fa-whatsapp" style="margin-right: 8px;"></i>Enviar por WhatsApp
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Agregar estilos de animación
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: scale(0.9) translateY(-20px); opacity: 0; }
+                    to { transform: scale(1) translateY(0); opacity: 1; }
+                }
+                .delivery-modal-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.8);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 2000;
+                    animation: fadeIn 0.3s ease;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Agregar clase para facilitar el cierre
+            modal.className = 'delivery-modal-overlay';
+
+            document.body.appendChild(modal);
+
+            // Cerrar modal al hacer click fuera
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+
+            // Cerrar con tecla Escape
+            document.addEventListener('keydown', function closeModal(e) {
+                if (e.key === 'Escape') {
+                    modal.remove();
+                    document.removeEventListener('keydown', closeModal);
+                }
+            });
+
+            // Enfocar primer campo
+            setTimeout(() => {
+                document.getElementById('customer-name').focus();
+            }, 300);
+        }
+
+        // Función para finalizar compra - Envío por WhatsApp
         function checkout() {
-            alert('Funcionalidad de checkout próximamente. Total: $' + window.cart.reduce((sum, item) => sum + item.subtotal, 0).toLocaleString());
+            showDeliveryForm();
+        }
+
+        // Función para enviar a WhatsApp con datos del formulario
+        function sendToWhatsApp() {
+            const form = document.getElementById('delivery-form');
+
+            // Validar formulario
+            const name = document.getElementById('customer-name').value.trim();
+            const phone = document.getElementById('customer-phone').value.trim();
+            const address = document.getElementById('customer-address').value.trim();
+            const paymentMethod = document.getElementById('payment-method').value;
+            const notes = document.getElementById('order-notes').value.trim();
+
+            if (!name || !phone || !address) {
+                alert('Por favor completa todos los campos obligatorios (*)');
+                return;
+            }
+
+            const total = window.cart.reduce((sum, item) => sum + item.subtotal, 0);
+
+            // Crear mensaje para WhatsApp
+            let mensaje = `🛒 *PEDIDO DE ALLALETERA*\n\n`;
+            mensaje += `📅 Fecha: ${new Date().toLocaleDateString('es-ES')}\n`;
+            mensaje += `⏰ Hora: ${new Date().toLocaleTimeString('es-ES')}\n\n`;
+
+            mensaje += `👤 *DATOS DEL CLIENTE:*\n`;
+            mensaje += `Nombre: ${name}\n`;
+            mensaje += `Teléfono: ${phone}\n`;
+            mensaje += `Dirección: ${address}\n`;
+            mensaje += `Método de Pago: ${paymentMethod === 'efectivo' ? '💵 Efectivo' : paymentMethod === 'transferencia' ? '🏦 Transferencia' : '💳 Tarjeta'}\n`;
+            if (notes) {
+                mensaje += `Notas: ${notes}\n`;
+            }
+            mensaje += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+            mensaje += `📋 *PRODUCTOS:*\n`;
+            window.cart.forEach((item, index) => {
+                mensaje += `\n${index + 1}. *${item.nombre}*\n`;
+                mensaje += `   Cantidad: ${item.cantidad}\n`;
+                mensaje += `   Precio unitario: $${item.valor.toLocaleString()}\n`;
+                mensaje += `   Subtotal: $${item.subtotal.toLocaleString()}\n`;
+
+                // Agregar preferencias si existen
+                if (item.preferencia1 || item.preferencia2 || item.preferencia3) {
+                    mensaje += `   🍽️ *Personalización:*\n`;
+                    if (item.preferencia1) mensaje += `   • ${item.preferencia1}\n`;
+                    if (item.preferencia2) mensaje += `   • ${item.preferencia2}\n`;
+                    if (item.preferencia3) mensaje += `   • ${item.preferencia3}\n`;
+                }
+
+                if (item.pedido_nota2) {
+                    mensaje += `   📝 Nota: ${item.pedido_nota2}\n`;
+                }
+            });
+
+            mensaje += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+            mensaje += `💰 *TOTAL A PAGAR: $${total.toLocaleString()}*\n`;
+            mensaje += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+            mensaje += `✅ *PEDIDO CONFIRMADO*\n`;
+            mensaje += `¡Gracias por tu pedido! Nos pondremos en contacto pronto para confirmar la entrega.\n\n`;
+            mensaje += `#Allaletera #PedidoEnLinea`;
+
+            // Codificar el mensaje para URL
+            const mensajeCodificado = encodeURIComponent(mensaje);
+
+            // Número de WhatsApp (cambiar por el número real)
+            const numeroWhatsApp = '573001234567'; // Cambiar por el número real
+
+            // Crear URL de WhatsApp
+            const urlWhatsApp = `https://wa.me/${numeroWhatsApp}?text=${mensajeCodificado}`;
+
+            // Cerrar modal
+            document.querySelector('.delivery-modal-overlay').remove();
+
+            // Abrir WhatsApp en nueva ventana
+            window.open(urlWhatsApp, '_blank');
+
+            // Mostrar confirmación
+            alert('¡Pedido enviado por WhatsApp!\n\nRevisa la nueva pestaña para confirmar tu pedido.');
+
+            console.log('Pedido enviado por WhatsApp:', {
+                cliente: { name, phone, address, paymentMethod, notes },
+                mensaje: mensaje,
+                total: total,
+                productos: window.cart.length
+            });
         }
 
         // Handle preference validation
